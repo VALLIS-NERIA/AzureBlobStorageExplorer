@@ -1,15 +1,10 @@
-import { main } from "./azuretest"
-import * as React from "react"
+import { main } from "./azuretest";
+import * as React from "react";
+import { StorageExplorer } from "./Components/StorageExplorer/StorageExplorer";
+import * as ReactDOM from "react-dom";
+import sasUrl from "./sas"
+// main();
 
-main();
-
-import {
-    Storage,
-    Container,
-    Blob,
-    Directory,
-    ItemList,
-    Item,
-    ItemType
-} from "./azureExplorer";
-
+ReactDOM.render(
+    <StorageExplorer url={sasUrl} />,
+    document.getElementById("root"));

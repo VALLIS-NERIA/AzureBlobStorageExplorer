@@ -6,34 +6,75 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
     function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
     function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);  }
+    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
     function fulfill(value) { resume("next", value); }
     function reject(value) { resume("throw", value); }
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
 };
 var __asyncValues = (this && this.__asyncValues) || function (o) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator];
-    return m ? m.call(o) : typeof __values === "function" ? __values(o) : o[Symbol.iterator]();
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const storage_blob_1 = require("@azure/storage-blob");
 exports.delimiter = "/";
+var ItemType;
+(function (ItemType) {
+    ItemType["Blob"] = "Blob";
+    ItemType["Directory"] = "Directory";
+})(ItemType = exports.ItemType || (exports.ItemType = {}));
+class ItemList {
+    constructor() {
+        this.blobTasks = [];
+        this.directories = [];
+        this.blobs = [];
+    }
+    [Symbol.iterator]() {
+        return this.enumerate();
+    }
+    add(item) {
+        if (item.type === ItemType.Directory) {
+            this.directories.push(item.asDirectory);
+        }
+        else if (item.type === ItemType.Blob) {
+            this.blobs.push(item.asBlob);
+            this.blobTasks.push(item.asBlob.getting);
+        }
+        else {
+            throw new Error("Unknown item.type");
+        }
+    }
+    waitBlobMetadata() {
+        return Promise.all(this.blobTasks).then(() => { });
+    }
+    *enumerate() {
+        for (const dir of this.directories) {
+            yield dir;
+        }
+        for (const blob of this.blobs) {
+            yield blob;
+        }
+    }
+}
+exports.ItemList = ItemList;
 class Storage {
-    constructor(SASURL) {
+    constructor(sasUrl) {
         this.anonCred = new storage_blob_1.AnonymousCredential();
         this.pipeline = storage_blob_1.StorageURL.newPipeline(this.anonCred);
-        this.url = SASURL;
+        this.url = sasUrl;
         this.serviceURL = new storage_blob_1.ServiceURL(this.url, this.pipeline);
     }
-    getContainers() {
-        return __asyncGenerator(this, arguments, function* getContainers_1() {
+    enumerateContainers() {
+        return __asyncGenerator(this, arguments, function* enumerateContainers_1() {
             let marker = undefined;
             do {
                 const listContainersResponse = yield __await(this.serviceURL.listContainersSegment(storage_blob_1.Aborter.none, marker));
                 marker = listContainersResponse.marker;
                 for (const container of listContainersResponse.containerItems) {
-                    yield new Container(this.serviceURL, container);
+                    yield yield __await(new Container(this.serviceURL, container));
                 }
             } while (marker);
         });
@@ -47,44 +88,38 @@ class Container {
         this.containerItem = containerItem;
         this.name = containerItem.name;
     }
-    async getItemsList(dir) {
-        const ret = { directories: [], blobs: [] };
+    async getItemsList(prefix) {
+        var e_1, _a;
+        const ret = new ItemList();
         try {
-            for (var _a = __asyncValues(this.getItems(dir)), _b; _b = await _a.next(), !_b.done;) {
-                const item = await _b.value;
-                if (item.type == ItemType.Directory) {
-                    const dir = item;
-                    ret.directories.push(dir);
-                }
-                else {
-                    const blob = item;
-                    ret.blobs.push(blob);
-                }
+            for (var _b = __asyncValues(this.enumerateItems(prefix)), _c; _c = await _b.next(), !_c.done;) {
+                const item = _c.value;
+                ret.add(item);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (_b && !_b.done && (_c = _a.return)) await _c.call(_a);
+                if (_c && !_c.done && (_a = _b.return)) await _a.call(_b);
             }
             finally { if (e_1) throw e_1.error; }
         }
         return ret;
-        var e_1, _c;
     }
-    getItems(dir) {
-        return __asyncGenerator(this, arguments, function* getItems_1() {
+    enumerateItems(prefix) {
+        return __asyncGenerator(this, arguments, function* enumerateItems_1() {
+            console.log(prefix);
             let marker;
             do {
-                const listBlobsResponse = yield __await(this.containerURL.listBlobHierarchySegment(storage_blob_1.Aborter.none, exports.delimiter, marker, dir ? { prefix: dir.path + exports.delimiter } : undefined));
+                const listBlobsResponse = yield __await(this.containerURL.listBlobHierarchySegment(storage_blob_1.Aborter.none, exports.delimiter, marker, prefix ? { prefix: prefix } : undefined));
                 marker = listBlobsResponse.marker;
                 if (listBlobsResponse.segment.blobPrefixes) {
                     for (const prefix of listBlobsResponse.segment.blobPrefixes) {
-                        yield new Directory(this, prefix.name);
+                        yield yield __await(new Directory(this, prefix.name));
                     }
                 }
                 for (const blob of listBlobsResponse.segment.blobItems) {
-                    yield new Blob(this, blob);
+                    yield yield __await(new Blob(this, blob));
                 }
             } while (marker);
         });
@@ -94,11 +129,6 @@ class Container {
     }
 }
 exports.Container = Container;
-var ItemType;
-(function (ItemType) {
-    ItemType["Blob"] = "Blob";
-    ItemType["Directory"] = "Directory";
-})(ItemType = exports.ItemType || (exports.ItemType = {}));
 class Blob {
     constructor(container, blobItem) {
         this.type = ItemType.Blob;
@@ -108,6 +138,14 @@ class Blob {
         this.path = blobItem.name;
         this.blobURL = this.container.getBlobURL(this);
         this.url = this.blobURL.url;
+        this.properties = null;
+        this.getting = this.getMetadata();
+    }
+    getMetadata() {
+        return this.blobURL.getProperties(storage_blob_1.Aborter.timeout(5000))
+            .then((response) => {
+            this.properties = response;
+        });
     }
 }
 exports.Blob = Blob;
@@ -123,10 +161,11 @@ class Directory {
             this.path = name;
         }
     }
-    getItems() {
-        return __asyncGenerator(this, arguments, function* getItems_2() {
-            return this.container.getItems(this);
-        });
+    getItemsList(prefix) {
+        return this.container.getItemsList(this.path);
+    }
+    enumerateItems(prefix) {
+        return this.container.enumerateItems(this.path);
     }
 }
 exports.Directory = Directory;

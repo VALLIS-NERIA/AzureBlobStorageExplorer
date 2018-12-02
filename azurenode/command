@@ -1,0 +1,1 @@
+webpack src/index.tsx --config webpack-config.js --watch

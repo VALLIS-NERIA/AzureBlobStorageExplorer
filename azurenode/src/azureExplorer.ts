@@ -12,8 +12,71 @@ import {
 } from "@azure/storage-blob";
 import * as Azure from "@azure/storage-blob";
 
-
 export const delimiter = "/";
+
+export enum ItemType {
+    Blob = "Blob",
+    Directory = "Directory"
+}
+
+export interface IItem {
+    type: ItemType;
+    path: string;
+
+    asBlob?: Blob;
+
+    asDirectory?: Directory;
+}
+
+export interface ISet {
+    getItemsList(prefix?: string): Promise<ItemList>;
+
+    enumerateItems(prefix?: string): AsyncIterableIterator<IItem>;
+}
+
+export class ItemList implements Iterable<IItem> {
+    [Symbol.iterator](): IterableIterator<IItem> {
+        return this.enumerate();
+    }
+
+    directories: Array<Directory>;
+
+    blobs: Array<Blob>;
+
+    private blobTasks: Array<Promise<void>> = [];
+
+    constructor() {
+        this.directories = [];
+        this.blobs = [];
+    }
+
+    add(item: IItem) {
+        if (item.type === ItemType.Directory) {
+            this.directories.push(item.asDirectory);
+        }
+        else if (item.type === ItemType.Blob) {
+            this.blobs.push(item.asBlob);
+            this.blobTasks.push(item.asBlob.getting);
+        }
+        else {
+            throw new Error("Unknown item.type");
+        }
+    }
+
+    waitBlobMetadata(): Promise<void> {
+        return Promise.all(this.blobTasks).then(() => {});
+    }
+
+    private *enumerate(): IterableIterator<IItem> {
+
+        for (const dir of this.directories) {
+            yield dir;
+        }
+        for (const blob of this.blobs) {
+            yield blob;
+        }
+    }
+}
 
 export class Storage {
     private url: string;
@@ -21,12 +84,12 @@ export class Storage {
     private anonCred = new AnonymousCredential();
     private pipeline = StorageURL.newPipeline(this.anonCred);
 
-    constructor(SASURL: string) {
-        this.url = SASURL;
+    constructor(sasUrl: string) {
+        this.url = sasUrl;
         this.serviceURL = new ServiceURL(this.url, this.pipeline);
     }
 
-    public async* getContainers(): AsyncIterableIterator<Container> {
+    public async* enumerateContainers(): AsyncIterableIterator<Container> {
         let marker: any = undefined;
         do {
             const listContainersResponse = await this.serviceURL.listContainersSegment(
@@ -42,7 +105,7 @@ export class Storage {
     }
 }
 
-export class Container {
+export class Container implements ISet {
     name: string;
 
     private serviceURL: ServiceURL;
@@ -56,28 +119,35 @@ export class Container {
         this.name = containerItem.name;
     }
 
-    public async getItemsList(dir?: Directory): Promise<ItemList> {
-        const ret: ItemList = {directories: [], blobs: []};
-        for await (const item of this.getItems(dir)){
-            if (item.type == ItemType.Directory) {
-                const dir = item as Directory;
-                ret.directories.push(dir);
-            } else {
-                const blob = item as Blob;
-                ret.blobs.push(blob);
+    public async findPrefixDir(prefix: string): Promise<Directory> {
+        while (prefix.endsWith(delimiter)) {
+            prefix = prefix.substring(0, prefix.length - 2);
+        }
+        for await (const item of this.enumerateItems(prefix)) {
+            console.log(item.path);
+            if (item.type === ItemType.Directory && item.path === prefix + delimiter) {
+                return item.asDirectory;
             }
+        }
+        return null;
+    }
+
+    public async getItemsList(prefix?: string): Promise<ItemList> {
+        const ret: ItemList = new ItemList();
+        for await (const item of this.enumerateItems(prefix)) {
+            ret.add(item);
         }
         return ret;
     }
 
-    public async* getItems(dir?: Directory): AsyncIterableIterator<Item> {
+    public async* enumerateItems(prefix?: string): AsyncIterableIterator<IItem> {
         let marker: any;
         do {
             const listBlobsResponse = await this.containerURL.listBlobHierarchySegment(
                 Aborter.none,
                 delimiter,
                 marker,
-                dir ? {prefix: dir.path + delimiter} : undefined
+                prefix ? { prefix: prefix } : undefined
             );
 
             marker = listBlobsResponse.marker;
@@ -98,30 +168,15 @@ export class Container {
     }
 }
 
-export enum ItemType {
-    Blob = "Blob",
-    Directory = "Directory"
-}
-
-export interface Item {
-    type: ItemType;
-
-    asBlob?: Blob;
-
-    asDirectory?: Directory;
-}
-
-export interface ItemList {
-    directories: Array<Directory>;
-    blobs: Array<Blob>;
-}
-
-export class Blob implements Item {
+export class Blob implements IItem {
     type = ItemType.Blob;
     asBlob = this;
 
     path: string;
     url: string;
+    properties: Models.BlobGetPropertiesResponse;
+
+    getting: Promise<void>;
 
     private container: Container;
     private blobURL: BlobURL;
@@ -133,15 +188,24 @@ export class Blob implements Item {
         this.path = blobItem.name;
         this.blobURL = this.container.getBlobURL(this);
         this.url = this.blobURL.url;
+        this.properties = null;
+        this.getting = this.getMetadata();
     }
 
+    private getMetadata(): Promise<void> {
+        return this.blobURL.getProperties(Aborter.timeout(5000))
+            .then(
+                (response) => {
+                    this.properties = response;
+                });
+    }
 }
 
-export class Directory implements Item {
+export class Directory implements IItem, ISet {
     type = ItemType.Directory;
     asDirectory = this;
 
-    /* This does NOT contains a delimiter at the end. */
+    /* This contains a delimiter at the end. */
     path: string;
 
     private container: Container;
@@ -149,13 +213,18 @@ export class Directory implements Item {
     constructor(container: Container, name: string, parent?: Directory) {
         this.container = container;
         if (parent) {
-            this.path = parent.path + delimiter + name;
-        } else {
+            this.path = parent.path + name;
+        }
+        else {
             this.path = name;
         }
     }
 
-    public async* getItems(): AsyncIterableIterator<Item> {
-        return this.container.getItems(this);
+    public getItemsList(prefix?: string): Promise<ItemList> {
+        return this.container.getItemsList(this.path);
+    }
+
+    public enumerateItems(prefix?: string): AsyncIterableIterator<IItem> {
+        return this.container.enumerateItems(this.path);
     }
 }

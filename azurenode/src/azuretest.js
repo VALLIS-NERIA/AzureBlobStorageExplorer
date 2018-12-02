@@ -1,8 +1,10 @@
 "use strict";
 var __asyncValues = (this && this.__asyncValues) || function (o) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator];
-    return m ? m.call(o) : typeof __values === "function" ? __values(o) : o[Symbol.iterator]();
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const storage_blob_1 = require("@azure/storage-blob");
@@ -78,18 +80,37 @@ async function main_() {
 }
 exports.main_ = main_;
 async function main() {
-    const url = "https://backupstroage.blob.core.windows.net/?sv=2017-11-09&ss=bfqt&srt=sco&sp=rwdlacup&se=2018-11-30T15:54:38Z&st=2018-11-28T07:54:38Z&spr=https&sig=nTCU7YCdrL9RWPlo43jfC%2FIPUmdM4wBL7ZhpWtlrrQ0%3D";
+    var e_1, _a, e_2, _b, e_3, _c;
+    const url = "https://backupstroage.blob.core.windows.net/?sv=2017-11-09&ss=bfqt&srt=sco&sp=rwdlacup&se=2018-12-09T15:59:59Z&st=2018-12-01T06:42:27Z&spr=https,http&sig=dpuR5vGLBHRYeclGYzcYb%2F4D5v4nLhjcaflkyNB68DE%3D";
     let storage = new AzureBlobExplorer.Storage(url);
     try {
-        for (var _a = __asyncValues(storage.getContainers()), _b; _b = await _a.next(), !_b.done;) {
-            const container = await _b.value;
+        for (var _d = __asyncValues(storage.enumerateContainers()), _e; _e = await _d.next(), !_e.done;) {
+            const container = _e.value;
             console.log(`Container: ${container.name}`);
             try {
-                for (var _c = __asyncValues(container.getItems()), _d; _d = await _c.next(), !_d.done;) {
-                    const item = await _d.value;
-                    if (item.type == AzureBlobExplorer.ItemType.Directory) {
+                //const top = await container.getItemsList();
+                //for (const dir of top.directories) {
+                //    const sub = await dir.getItemsList();
+                //    //for
+                //}
+                for (var _f = __asyncValues(container.enumerateItems()), _g; _g = await _f.next(), !_g.done;) {
+                    const item = _g.value;
+                    if (item.type === AzureBlobExplorer.ItemType.Directory) {
                         const dir = item;
                         console.log(`Directory: ${dir.path}`);
+                        try {
+                            for (var _h = __asyncValues(dir.enumerateItems()), _j; _j = await _h.next(), !_j.done;) {
+                                const child = _j.value;
+                                console.log(`Directory: ${child.path}`);
+                            }
+                        }
+                        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+                        finally {
+                            try {
+                                if (_j && !_j.done && (_c = _h.return)) await _c.call(_h);
+                            }
+                            finally { if (e_3) throw e_3.error; }
+                        }
                     }
                     else {
                         const blob = item;
@@ -97,24 +118,24 @@ async function main() {
                     }
                 }
             }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
             finally {
                 try {
-                    if (_d && !_d.done && (_e = _c.return)) await _e.call(_c);
+                    if (_g && !_g.done && (_b = _f.return)) await _b.call(_f);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
             }
         }
     }
-    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
     finally {
         try {
-            if (_b && !_b.done && (_f = _a.return)) await _f.call(_a);
+            if (_e && !_e.done && (_a = _d.return)) await _a.call(_d);
         }
-        finally { if (e_2) throw e_2.error; }
+        finally { if (e_1) throw e_1.error; }
     }
-    var e_2, _f, e_1, _e;
 }
 exports.main = main;
+main();
 // An async method returns a Promise object, which is compatible with then().catch() coding style.
 //# sourceMappingURL=azuretest.js.map

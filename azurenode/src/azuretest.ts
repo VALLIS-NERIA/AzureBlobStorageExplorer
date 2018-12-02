@@ -110,15 +110,24 @@ export async function main_() {
 
 export async function main() {
     const url =
-        "https://backupstroage.blob.core.windows.net/?sv=2017-11-09&ss=bfqt&srt=sco&sp=rwdlacup&se=2018-11-30T15:54:38Z&st=2018-11-28T07:54:38Z&spr=https&sig=nTCU7YCdrL9RWPlo43jfC%2FIPUmdM4wBL7ZhpWtlrrQ0%3D";
+        "https://backupstroage.blob.core.windows.net/?sv=2017-11-09&ss=bfqt&srt=sco&sp=rwdlacup&se=2018-12-09T15:59:59Z&st=2018-12-01T06:42:27Z&spr=https,http&sig=dpuR5vGLBHRYeclGYzcYb%2F4D5v4nLhjcaflkyNB68DE%3D";
 
     let storage = new AzureBlobExplorer.Storage(url);
-    for await (const container of storage.getContainers()) {
+    for await (const container of storage.enumerateContainers()) {
         console.log(`Container: ${container.name}`);
-        for await (const item of container.getItems()) {
-            if (item.type == AzureBlobExplorer.ItemType.Directory) {
+        //const top = await container.getItemsList();
+        //for (const dir of top.directories) {
+        //    const sub = await dir.getItemsList();
+        //    //for
+        //}
+
+        for await (const item of container.enumerateItems()) {
+            if (item.type === AzureBlobExplorer.ItemType.Directory) {
                 const dir = item as AzureBlobExplorer.Directory;
                 console.log(`Directory: ${dir.path}`);
+                for await (const child of dir.enumerateItems()) {
+                    console.log(`Directory: ${child.path}`);
+                }
             } else {
                 const blob = item as AzureBlobExplorer.Blob;
                 console.log(`Blob: ${blob.path}`);
@@ -127,4 +136,5 @@ export async function main() {
     }
 }
 
+main();
 // An async method returns a Promise object, which is compatible with then().catch() coding style.
