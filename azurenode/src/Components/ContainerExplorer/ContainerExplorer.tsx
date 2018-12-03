@@ -14,37 +14,36 @@ import * as React from "react";
 
 import { Link, RouteComponentProps, match } from "react-router-dom";
 
-interface IMatchParam {
-    containerName?: string;
-    dirPath?: string;
-}
+// TODO: modify MainRouter : (props)=><ContainerExplorer containerName={props.match.params.containerName} ...
 
-interface IExplorerProp extends RouteComponentProps<IMatchParam> {
+interface IExplorerProp {
     sasUrl: string;
     isSearch: boolean;
+    containerName?: string;
+    dirPath?: string;
+    search?: string;
 }
 
 interface IExplorerState {
     storage: Storage;
     containers: Container[];
     container: Container;
-    set: ISet;
     containerName: string;
+    set: ISet;
     itemList: ItemList;
 }
 
-const styles = require("./ContainerExplorer.less");
+const styles: any = require("./ContainerExplorer.less");
 
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
-
     constructor(props: IExplorerProp) {
         super(props);
         this.state = {
             storage: null,
             containers: null,
             container: null,
-            set: null,
             containerName: null,
+            set: null,
             itemList: null
         };
     }
@@ -56,115 +55,168 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     componentWillReceiveProps(nextProps: IExplorerProp) {
         this.updateState(nextProps);
     }
+    
+    render() {
+        if (!this.state.storage) {
+            return this.loadingView();
+        }
 
-    private updateState(props: IExplorerProp) {
-        this.state = {
-            storage: this.state.storage, //storage and containers are not reset
-            containers: this.state.containers,
+        if (this.state.container && !this.state.container) {
+            // show container list
+            return this.storageView();
+        }
+
+        if (!this.state.itemList) {
+            return this.loadingView();
+        }
+
+        if (this.state.itemList) {
+            return this.setView();
+        }
+        //return <div> {this.state.container?"YES":"NO"}{this.props.match.params.containerName}</div>;
+    }
+
+    /* Rendering */
+
+    private getDirFullPath(dir: Directory): string {
+        if (this.props.isSearch) {
+            return `/?container=${this.state.containerName}&path=${dir.path}`;
+        }
+        else {
+            return `/${this.state.containerName}/${dir.path}`;
+        }
+    }
+
+    private storageView(): JSX.Element {
+        const list: JSX.Element[] = [];
+        for (const cont of this.state.containers) {
+            list.push(<Link to={`/${cont.name}`}> {`Container: ${cont.name}`} </Link>);
+        }
+        return <div>
+                   <div>
+                       {list}
+                   </div>
+               </div>;
+    }
+
+    private setView(): JSX.Element {
+        const list: JSX.Element[] = [];
+        const items = this.state.itemList;
+        for (const dir of items.directories) {
+            list.push(<Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>);
+        }
+        for (const blob of items.blobs) {
+            const mime: string = blob.properties ? blob.properties.contentType : "";
+            list.push(
+                <div>
+                    <a href={blob.url} target="_blank" type={mime}> {`Blob: ${blob.path}`} </a>
+                </div>);
+        }
+        return <div>
+                   <Link className={styles.backToTop} to="/">Back to top </Link>
+                   <div>
+                       {list}
+                   </div>
+               </div>;
+    }
+
+    private loadingView(): JSX.Element {
+        return <div>Loading...</div>;
+    }
+
+    /* Life cycle */
+
+    private async updateState(props: IExplorerProp): Promise<void> {
+        const temp: IExplorerState = {
+            storage: null,
+            containers: null,
             container: null,
-            set: null,
             containerName: null,
+            set: null,
             itemList: null
         };
 
-        if (!this.state.storage) {
-            this.setState({ storage: new Storage(props.sasUrl) }, () => this.getContainers(props));
-        }
-        else {
-            if (!this.state.containers) {
-                this.getContainers(props);
-            }
-            else {
-                // we have containers
-                this.getPath(props);
-            }
-        }
+        temp.storage = this.state.storage ? this.state.storage : new Storage(props.sasUrl);
+        temp.containers = this.state.containers ? this.state.containers : await ContainerExplorer.getContainers(temp.storage);
+        const path = await ContainerExplorer.getPath(props, temp.containers);
+        temp.container = path.container;
+        temp.containerName = path.containerName;
+        temp.set = path.set;
+
+        this.setState(temp, this.getItems);
     }
 
-    // next: getPath
-    private async getContainers(props: IExplorerProp): Promise<void> {
+    private static async getContainers(storage: Storage): Promise<Container[]> {
         const list: Container[] = [];
-        for await (const container of this.state.storage.enumerateContainers()) {
+        for await (const container of storage.enumerateContainers()) {
             list.push(container);
         }
-        this.setState({ containers: list }, () => this.getPath(props));
+        return list;
     }
 
-    // next: getItems
-    private async getPath(props: IExplorerProp): Promise<void> {
-        if (!this.state.containers) {
-            return;
-        }
+    private static async getPath(props: IExplorerProp, containers: Container[]): Promise<{ container: Container, containerName: string, set: ISet }> {
+        let containerName: string = null;
+        let dirPath: string = null;
         if (props.isSearch) {
-            const search = props.location.search;
-            // TODO: split
-        }
-        else {
-            let container: Container = null;
-            const containerName = props.match.params.containerName;
-            if (!containerName) {
-                // You are at the home page, should list the containers.
-                this.setState({ container: null, containerName: null, set: null });
-                return;
-            }
+            // ?container=ero&path=Ariel/pro
+            const search = props.search;
+            try {
+                // remove ? then split
+                let a = search.substring(1).split("&");
+                for (const prop of a) {
+                    let b = prop.split("=");
+                    const key = b[0];
+                    const value = b[1];
+                    if (key === "container") {
+                        containerName = value;
+                    }
 
-            for (const c of this.state.containers) {
-                if (c.name === containerName) {
-                    container = c;
+                    else if (key === "path" || key == "dir") {
+                        dirPath = value;
+                    }
                 }
             }
-
-            this.state = {
-                storage: this.state.storage,
-                containers: this.state.containers,
-                container: container,
-                containerName: containerName,
-                set: null,
-                itemList: null
-            };
-
-            if (container) {
-                // if dirPath is undefined, the method returns null
-                container.findPrefixDir(props.match.params.dirPath)
-                    .then((dir) => {
-                        const set = dir ? dir : container;
-                        this.setState({ set: set }, this.getItems);
-                    });
+            catch (e) {
+                console.error(`Invalid URL query param: ${search}`);
+                console.error(e);
             }
         }
+        else {
+            containerName = props.containerName;
+            dirPath = props.dirPath;
+        }
+
+        // Now we have containerName and dirPath
+        let container: Container = null;
+        if (!containerName) {
+            // You are at the home page, should list the containers.
+            return { container: null, containerName: null, set: null };
+        }
+
+        for (const c of containers) {
+            if (c.name === containerName) {
+                container = c;
+            }
+        }
+
+        let set: ISet = container;
+        if (container) {
+            // if dirPath is undefined, the method returns null
+            const dir = dirPath ? await container.findPrefixDir(dirPath) : null;
+            if (dir) {
+                set = dir;
+            }
+        }
+
+        return { container: container, containerName: containerName, set: set };
     }
 
-    // final
     private async getItems(): Promise<void> {
         if (this.state.set) {
             const res = await this.state.set.getItemsList();
-            await res.waitBlobMetadata();
             this.setState({ itemList: res });
+            // TODO: experiment
+            res.waitBlobMetadata().then(() => this.setState({ itemList: res }));
         }
-    }
-
-    render() {
-        const list: JSX.Element[] = [];
-        if (this.state.itemList) {
-            const items = this.state.itemList;
-            for (const dir of items.directories) {
-                list.push(<Link to={"/" + this.state.containerName + "/" + dir.path}> {`Dir: ${dir.path}`} </Link>);
-            }
-            for (const blob of items.blobs) {
-                const mime: string = blob.properties ? blob.properties.contentType : "";
-                list.push(
-                    <div>
-                        <a href={blob.url} target="_blank" type={mime}> {`Blob: ${blob.path}`} </a>
-                    </div>);
-            }
-        }
-
-        return <div>
-            <Link className={styles.backToTop} to="/">Back to top </Link>
-            <div>
-                {list}
-            </div>
-        </div>;
-        //return <div> {this.state.container?"YES":"NO"}{this.props.match.params.containerName}</div>;
     }
 }
