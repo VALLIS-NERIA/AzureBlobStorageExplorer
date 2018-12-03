@@ -25,12 +25,12 @@ interface IExplorerProp {
 }
 
 interface IExplorerState {
-    storage: Storage;
-    containers: Container[];
-    container: Container;
-    containerName: string;
-    set: ISet;
-    itemList: ItemList;
+    storage: Storage;                   // Never null
+    containers: Container[];            // null: initializing
+    container: Container;               // null: storage view
+    containerName: string;              // ^
+    set: ISet;                          // ^
+    itemList: ItemList;                 // null: storage view / item data fetching
 }
 
 const styles: any = require("./ContainerExplorer.less");
@@ -39,7 +39,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     constructor(props: IExplorerProp) {
         super(props);
         this.state = {
-            storage: null,
+            storage: new Storage(props.sasUrl),
             containers: null,
             container: null,
             containerName: null,
@@ -57,11 +57,11 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     }
     
     render() {
-        if (!this.state.storage) {
+        if (!this.state.containers) {
             return this.loadingView();
         }
 
-        if (this.state.container && !this.state.container) {
+        if (this.state.containers && !this.state.container) {
             // show container list
             return this.storageView();
         }
@@ -126,6 +126,37 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     /* Life cycle */
 
+    /* Temporarily commented
+    static getDerivedStateFromProps(newProp: IExplorerProp, prevState: IExplorerState): IExplorerState {
+        const temp: IExplorerState = {
+            storage: null,
+            containers: null,
+            container: null,
+            containerName: null,
+            set: null,
+            itemList: null
+        };
+
+        // NOT null
+        temp.storage = prevState.storage ? prevState.storage : new Storage(newProp.sasUrl);
+
+        // MAYBE null
+        temp.containers = prevState.containers;
+        temp.container = prevState.containerName === newProp.containerName ? prevState.container : null;
+        temp.containerName = prevState.containerName === newProp.containerName ? prevState.containerName : null;
+
+        // MUST null
+        temp.set = null;
+        temp.itemList = null;
+
+        return temp;
+    }
+
+    componentDidUpdate(prevProps: IExplorerProp, prevState: IExplorerState, snapshot?): void {
+        this.updateState(prevProps);
+    }
+    */
+
     private async updateState(props: IExplorerProp): Promise<void> {
         const temp: IExplorerState = {
             storage: null,
@@ -143,7 +174,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         temp.containerName = path.containerName;
         temp.set = path.set;
 
-        this.setState(temp, this.getItems);
+        this.setState(temp, this.fetchItems);
     }
 
     private static async getContainers(storage: Storage): Promise<Container[]> {
@@ -211,7 +242,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return { container: container, containerName: containerName, set: set };
     }
 
-    private async getItems(): Promise<void> {
+    private async fetchItems(): Promise<void> {
         if (this.state.set) {
             const res = await this.state.set.getItemsList();
             this.setState({ itemList: res });
