@@ -1,10 +1,10 @@
 import { main } from "./azuretest";
 import * as React from "react";
-import { StorageExplorer } from "./Components/StorageExplorer/StorageExplorer";
+import { MainRouter } from "./Components/MainRouter/MainRouter";
 import * as ReactDOM from "react-dom";
 import sasUrl from "./sas"
 // main();
 
 ReactDOM.render(
-    <StorageExplorer url={sasUrl} />,
+    <MainRouter url={sasUrl} />,
     document.getElementById("root"));

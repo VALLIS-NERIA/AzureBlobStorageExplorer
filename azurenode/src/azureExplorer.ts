@@ -120,6 +120,8 @@ export class Container implements ISet {
     }
 
     public async findPrefixDir(prefix: string): Promise<Directory> {
+        if(!prefix) return null;
+
         while (prefix.endsWith(delimiter)) {
             prefix = prefix.substring(0, prefix.length - 2);
         }

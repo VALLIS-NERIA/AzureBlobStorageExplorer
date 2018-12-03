@@ -11,71 +11,131 @@
 } from "../../azureExplorer";
 
 import * as React from "react";
-import { BrowserRouter, Router, Route, Link, RouteProps, RouteComponentProps } from "react-router-dom";
 
-interface MatchParams {
-    containerName: string;
+import { Link, RouteComponentProps, match } from "react-router-dom";
+
+interface IMatchParam {
+    containerName?: string;
     dirPath?: string;
 }
 
-interface IExplorerProp extends RouteComponentProps<MatchParams> {
-    storage: Storage;
-    containers: Container[];
+interface IExplorerProp extends RouteComponentProps<IMatchParam> {
+    sasUrl: string;
+    isSearch: boolean;
 }
 
 interface IExplorerState {
+    storage: Storage;
+    containers: Container[];
     container: Container;
     set: ISet;
     containerName: string;
     itemList: ItemList;
 }
 
+const styles = require("./ContainerExplorer.less");
+
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
 
     constructor(props: IExplorerProp) {
         super(props);
-
-        this.updateState(this.props);
+        this.state = {
+            storage: null,
+            containers: null,
+            container: null,
+            set: null,
+            containerName: null,
+            itemList: null
+        };
     }
 
-    private updateState(props: IExplorerProp) {
-        let container: Container = null;
-        if (props.containers) {
-            for (const c of props.containers) {
-                if (c.name === props.match.params.containerName) {
-                    container = c;
-                }
-            }
-        }
-
-        let set: ISet = container;
-        if (props.match.params.dirPath && container) {
-            set = null;
-            container.findPrefixDir(props.match.params.dirPath)
-                .then(
-                    (dir) => {
-                        if (dir) {
-                            this.setState({ set: dir });
-                            this.getItems();
-                        }
-                    });
-        }
-
-        this.state = {
-            container: container,
-            set: set,
-            containerName: props.match.params.containerName,
-            itemList: null
-        }
-
-        this.getItems();
+    componentDidMount(): void {
+        this.updateState(this.props);
     }
 
     componentWillReceiveProps(nextProps: IExplorerProp) {
         this.updateState(nextProps);
     }
 
-    private async getItems() {
+    private updateState(props: IExplorerProp) {
+        this.state = {
+            storage: this.state.storage, //storage and containers are not reset
+            containers: this.state.containers,
+            container: null,
+            set: null,
+            containerName: null,
+            itemList: null
+        };
+
+        if (!this.state.storage) {
+            this.setState({ storage: new Storage(props.sasUrl) }, () => this.getContainers(props));
+        }
+        else {
+            if (!this.state.containers) {
+                this.getContainers(props);
+            }
+            else {
+                // we have containers
+                this.getPath(props);
+            }
+        }
+    }
+
+    // next: getPath
+    private async getContainers(props: IExplorerProp): Promise<void> {
+        const list: Container[] = [];
+        for await (const container of this.state.storage.enumerateContainers()) {
+            list.push(container);
+        }
+        this.setState({ containers: list }, () => this.getPath(props));
+    }
+
+    // next: getItems
+    private async getPath(props: IExplorerProp): Promise<void> {
+        if (!this.state.containers) {
+            return;
+        }
+        if (props.isSearch) {
+            const search = props.location.search;
+            // TODO: split
+        }
+        else {
+            let container: Container = null;
+            const containerName = props.match.params.containerName;
+            if (!containerName) {
+                // You are at the home page, should list the containers.
+                this.setState({ container: null, containerName: null, set: null });
+                return;
+            }
+
+            for (const c of this.state.containers) {
+                if (c.name === containerName) {
+                    container = c;
+                }
+            }
+
+            this.state = {
+                storage: this.state.storage,
+                containers: this.state.containers,
+                container: container,
+                containerName: containerName,
+                set: null,
+                itemList: null
+            };
+
+            if (container) {
+                // if dirPath is undefined, the method returns null
+                container.findPrefixDir(props.match.params.dirPath)
+                    .then((dir) => {
+                        const set = dir ? dir : container;
+                        this.setState({ set: set }, this.getItems);
+                    });
+            }
+        }
+    }
+
+    // final
+    private async getItems(): Promise<void> {
         if (this.state.set) {
             const res = await this.state.set.getItemsList();
             await res.waitBlobMetadata();
@@ -98,8 +158,13 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                     </div>);
             }
         }
-        list.push(<div><Link to="/">Back to top </Link></div>);
-        return <div> {list} </div>;
+
+        return <div>
+            <Link className={styles.backToTop} to="/">Back to top </Link>
+            <div>
+                {list}
+            </div>
+        </div>;
         //return <div> {this.state.container?"YES":"NO"}{this.props.match.params.containerName}</div>;
     }
 }
