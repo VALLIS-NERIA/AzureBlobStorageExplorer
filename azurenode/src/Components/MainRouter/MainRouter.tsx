@@ -76,7 +76,7 @@ export class MainRouter extends React.Component<IExplorerProp, IExplorerState> {
                                     sasUrl={this.state.url} storage={this.state.storage} containers={this.state.containers}
                                     isSearch={false} containerName={null} dirPath={null} {...props} />} />
                     <Route
-                        path="*/index.html"
+                        path="*/*.html"
                         component={
                             (props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
                                 <ContainerExplorer
