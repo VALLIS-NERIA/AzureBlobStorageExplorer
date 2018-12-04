@@ -12,6 +12,17 @@
 </div>
 <div id="root"></div>
 <!-- scripts -->
+<div id="scriptContainer"></div>
+<script>
+    const path = document.location.pathname;
+    if (path.endsWith("/")) {
+        document.getElementById("scriptContainer").innerHTML = "<script src=\"/static/app-bundle.js\" />";
+    }
+    else {
+        document.getElementById("scriptContainer").innerHTML = "<script src=\"./static/app-bundle.js\" />";
+    }
+</script>
+
 <script src="./static/app-bundle.js"></script>
 </body>
 </html>
