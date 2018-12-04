@@ -11,8 +11,8 @@
 } from "../../azureExplorer";
 
 import * as React from "react";
-
 import { Link, RouteComponentProps, match } from "react-router-dom";
+import { Loading } from "../Misc/Loading";
 
 // TODO: modify MainRouter : (props)=><ContainerExplorer containerName={props.match.params.containerName} ...
 
@@ -35,7 +35,7 @@ interface IExplorerState {
     itemList: ItemList; // null: storage view / item data fetching
 }
 
-const styles: any = require("./ContainerExplorer.less");
+const styles: any = require("./ContainerExplorer.module.less");
 const slash: string = "%2F";
 const slashReg: RegExp = /%2F/g;
 
@@ -44,8 +44,8 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     constructor(props: IExplorerProp) {
         super(props);
         this.state = {
-            storage: new Storage(props.sasUrl),
-            containers: null,
+            storage: props.storage ? props.storage: new Storage(props.sasUrl),
+            containers: props.containers? props.containers:null,
             container: null,
             containerName: null,
             set: null,
@@ -63,21 +63,15 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     render() {
         if (!this.state.containers) {
-            return this.loadingView();
+            return <Loading />;
         }
 
         if (this.state.containers && !this.state.container) {
             // show container list
             return this.storageView();
         }
-
-        if (!this.state.itemList) {
-            return this.loadingView();
-        }
-
-        if (this.state.itemList) {
+        
             return this.setView();
-        }
         //return <div> {this.state.container?"YES":"NO"}{this.props.match.params.containerName}</div>;
     }
 
@@ -96,7 +90,9 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     private storageView(): JSX.Element {
         const list: JSX.Element[] = [];
         for (const cont of this.state.containers) {
-            const path: string = this.props.isSearch ? `${this.props.location.pathname}?container=${cont.name}` : `/${cont.name}`;
+            const path: string = this.props.isSearch
+                ? `${this.props.location.pathname}?container=${cont.name}`
+                : `/${cont.name}`;
             list.push(<Link to={path}> {`Container: ${cont.name}`} </Link>);
         }
         return <div>
@@ -106,27 +102,34 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     private setView(): JSX.Element {
         const list: JSX.Element[] = [];
-        const items = this.state.itemList;
-        for (const dir of items.directories) {
-            list.push(<Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>);
+        if (!this.state.itemList) {
+            list.push(<Loading />);
         }
-        for (const blob of items.blobs) {
-            const mime: string = blob.properties ? blob.properties.contentType : "";
-            list.push(
-                <div>
-                    <a href={blob.url} target="_blank" type={mime}> {`Blob: ${blob.path}`} </a>
-                </div>);
+        else {
+            const items = this.state.itemList;
+            for (const dir of items.directories) {
+                list.push(<Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>);
+            }
+            for (const blob of items.blobs) {
+                const mime: string = blob.properties ? blob.properties.contentType : "";
+                list.push(
+                    <div>
+                        <a href={blob.url} target="_blank" type={mime}> {`Blob: ${blob.path}`} </a>
+                    </div>);
+            }
         }
-        return <div>
-                   <Link className={styles.backToTop} to="/">Back to top </Link>
-                   <div>
-                       {list}
-                   </div>
-               </div>;
-    }
 
-    private loadingView(): JSX.Element {
-        return <div>Loading...</div>;
+        return (
+            <div>
+                <div className={styles.backToTop}>
+                    <Link to={this.props.isSearch ? this.props.location.pathname : "/"}>
+                        Back to top
+                    </Link>
+                </div>
+                <div>
+                    {list}
+                </div>
+            </div>);
     }
 
     /* Life cycle */

@@ -4,6 +4,7 @@
 node_modules/
 dist/static/*
 src/*.js
+src/azuretest.ts
 src/sas.ts
 *.js.map
 

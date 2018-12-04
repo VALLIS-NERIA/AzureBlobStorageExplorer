@@ -20,15 +20,18 @@ module.exports = {
                 }
             },
             {
-                test: /\.less$/,
+                test: /\.module\.less$/,
                 use: [
+                    "style-loader",
                     {
-                        loader: "style-loader"
-                    }, {
-                        loader: "css-loader"
-                    }, {
-                        loader: "less-loader"
-                    }
+                        loader: "css-loader",
+                        options: {
+                            modules: true,
+                            importLoaders: 2,
+                            localIdentName: "azure-[name]-[local]"
+                        }
+                    },
+                    "less-loader"
                 ]
             }
         ]
