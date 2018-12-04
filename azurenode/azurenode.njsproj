@@ -41,10 +41,13 @@
     <Content Include="dist\index.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="src\Components\ContainerExplorer\ContainerExplorer.less">
+    <Content Include="src\Components\ContainerExplorer\ContainerExplorer.module.less">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="src\Components\MainRouter\MainRouter.less">
+    <Content Include="src\Components\MainRouter\MainRouter.module.less">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\Components\Misc\SmallComponents.module.less">
       <SubType>Code</SubType>
     </Content>
     <Content Include="tsconfig.json" />
@@ -52,6 +55,9 @@
     <TypeScriptCompile Include="src\azureExplorer.ts" />
     <TypeScriptCompile Include="src\azuretest.ts" />
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
+    <TypeScriptCompile Include="src\Components\Misc\Loading.tsx">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Components\MainRouter\MainRouter.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -67,10 +73,14 @@
     <Folder Include="src\Components\" />
     <Folder Include="src\Components\ContainerExplorer\" />
     <Folder Include="src\Components\MainRouter\" />
+    <Folder Include="src\Components\Misc\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="dist\static\app-bundle.js" />
     <Compile Include="dist\server.ts" />
+    <Compile Include="webpack-config-pro.js">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="webpack-config.js">
       <SubType>Code</SubType>
     </Compile>
