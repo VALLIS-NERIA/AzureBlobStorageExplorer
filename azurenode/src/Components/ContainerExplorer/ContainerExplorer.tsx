@@ -16,24 +16,29 @@ import { Link, RouteComponentProps, match } from "react-router-dom";
 
 // TODO: modify MainRouter : (props)=><ContainerExplorer containerName={props.match.params.containerName} ...
 
-interface IExplorerProp {
-    sasUrl: string;
+interface IExplorerProp extends RouteComponentProps {
     isSearch: boolean;
+    sasUrl: string;
+    storage?: Storage;
+    containers?: Container[];
     containerName?: string;
     dirPath?: string;
     search?: string;
 }
 
 interface IExplorerState {
-    storage: Storage;                   // Never null
-    containers: Container[];            // null: initializing
-    container: Container;               // null: storage view
-    containerName: string;              // ^
-    set: ISet;                          // ^
-    itemList: ItemList;                 // null: storage view / item data fetching
+    storage: Storage; // Never null
+    containers: Container[]; // null: initializing
+    container: Container; // null: storage view
+    containerName: string; // ^
+    set: ISet; // ^
+    itemList: ItemList; // null: storage view / item data fetching
 }
 
 const styles: any = require("./ContainerExplorer.less");
+const slash: string = "%2F";
+const slashReg: RegExp = /%2F/g;
+
 
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
     constructor(props: IExplorerProp) {
@@ -55,7 +60,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     componentWillReceiveProps(nextProps: IExplorerProp) {
         this.updateState(nextProps);
     }
-    
+
     render() {
         if (!this.state.containers) {
             return this.loadingView();
@@ -80,7 +85,8 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     private getDirFullPath(dir: Directory): string {
         if (this.props.isSearch) {
-            return `/?container=${this.state.containerName}&path=${dir.path}`;
+            const dirPath = dir.path.replace(/\//g, slash);
+            return `${this.props.location.pathname}?container=${this.state.containerName}&path=${dirPath}`;
         }
         else {
             return `/${this.state.containerName}/${dir.path}`;
@@ -90,12 +96,11 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     private storageView(): JSX.Element {
         const list: JSX.Element[] = [];
         for (const cont of this.state.containers) {
-            list.push(<Link to={`/${cont.name}`}> {`Container: ${cont.name}`} </Link>);
+            const path: string = this.props.isSearch ? `${this.props.location.pathname}?container=${cont.name}` : `/${cont.name}`;
+            list.push(<Link to={path}> {`Container: ${cont.name}`} </Link>);
         }
         return <div>
-                   <div>
-                       {list}
-                   </div>
+                   {list}
                </div>;
     }
 
@@ -168,7 +173,9 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         };
 
         temp.storage = this.state.storage ? this.state.storage : new Storage(props.sasUrl);
-        temp.containers = this.state.containers ? this.state.containers : await ContainerExplorer.getContainers(temp.storage);
+        temp.containers = this.state.containers
+            ? this.state.containers
+            : await ContainerExplorer.getContainers(temp.storage);
         const path = await ContainerExplorer.getPath(props, temp.containers);
         temp.container = path.container;
         temp.containerName = path.containerName;
@@ -185,10 +192,14 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return list;
     }
 
-    private static async getPath(props: IExplorerProp, containers: Container[]): Promise<{ container: Container, containerName: string, set: ISet }> {
+    private static async getPath(props: IExplorerProp, containers: Container[]): Promise<{
+        container: Container,
+        containerName: string,
+        set: ISet
+    }> {
         let containerName: string = null;
         let dirPath: string = null;
-        if (props.isSearch) {
+        if (props.isSearch && props.search) {
             // ?container=ero&path=Ariel/pro
             const search = props.search;
             try {
@@ -197,17 +208,20 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                 for (const prop of a) {
                     let b = prop.split("=");
                     const key = b[0];
-                    const value = b[1];
+                    let value = b[1];
                     if (key === "container") {
                         containerName = value;
                     }
-
                     else if (key === "path" || key == "dir") {
+                        value = value.replace(/\//g, slash);
+                        value = value.replace(slashReg, "/");
+                        if (!value.endsWith("/")) {
+                            value += "/";
+                        }
                         dirPath = value;
                     }
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 console.error(`Invalid URL query param: ${search}`);
                 console.error(e);
             }

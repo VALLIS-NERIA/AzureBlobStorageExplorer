@@ -9,9 +9,10 @@
 } from "../../azureExplorer";
 
 import * as React from "react";
-import { BrowserRouter, Router, Route, Link } from "react-router-dom";
+import { BrowserRouter, Router, Route, Link, RouteComponentProps, Switch } from "react-router-dom";
 import { createBrowserHistory, createHashHistory, createMemoryHistory } from "history";
 import { ContainerExplorer } from "../ContainerExplorer/ContainerExplorer";
+
 
 interface IExplorerProp {
     url: string;
@@ -31,7 +32,6 @@ export class MainRouter extends React.Component<IExplorerProp, IExplorerState> {
     }
 
 
-
     render(): JSX.Element {
         const ele: JSX.Element[] = [];
         if (this.state.containers) {
@@ -46,12 +46,24 @@ export class MainRouter extends React.Component<IExplorerProp, IExplorerState> {
         }
         return (
             <Router history={history}>
-                <div>
-                    <Route exact={true} path="/" render={() => <ul>{ele}</ul>} />
-                    <Route exact={true} path="*/*.html" render={() => <ul>{ele}</ul>} />
-                    <Route path="/:containerName/:dirPath*" component={(props) => <ContainerExplorer sasUrl={this.props.url} isSearch={false} storage={this.state.storage} containers={this.state.containers} {...props}/>}/>
-                    <Route path="*/index.html?" component={(props) => <ContainerExplorer sasUrl={this.props.url} isSearch={true} storage={this.state.storage} containers={this.state.containers} {...props}/>}/>
-                </div>
+                <Switch>
+                    <Route
+                        exact={true}
+                        path="/$"
+                        component={
+                            (props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
+                                <ContainerExplorer sasUrl={this.props.url} isSearch={false} containerName={null} dirPath={null} {...props} />} />
+                    <Route
+                        path="*/index.html"
+                        component={
+                            (props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
+                                <ContainerExplorer sasUrl={this.props.url} isSearch={true} search={props.location.search} {...props} />} />
+                    <Route
+                        path="/:containerName/:dirPath*"
+                        component={
+                            (props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
+                                <ContainerExplorer sasUrl={this.props.url} isSearch={false} containerName={props.match.params.containerName} dirPath={props.match.params.dirPath} {...props} />} />
+                </Switch>
             </Router>
         );
     }

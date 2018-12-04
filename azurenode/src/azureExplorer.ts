@@ -123,7 +123,7 @@ export class Container implements ISet {
         if(!prefix) return null;
 
         while (prefix.endsWith(delimiter)) {
-            prefix = prefix.substring(0, prefix.length - 2);
+            prefix = prefix.substring(0, prefix.length - 1);
         }
         for await (const item of this.enumerateItems(prefix)) {
             console.log(item.path);
