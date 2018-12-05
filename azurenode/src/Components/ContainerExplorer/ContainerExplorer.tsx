@@ -204,7 +204,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         let dirPath: string = null;
         if (props.isSearch && props.search) {
             // ?container=ero&path=Ariel/pro
-            const search = props.search;
+            const search = decodeURI(props.search);
             try {
                 // remove ? then split
                 let a = search.substring(1).split("&");

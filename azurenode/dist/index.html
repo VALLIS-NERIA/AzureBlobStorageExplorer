@@ -16,13 +16,11 @@
 <script>
     const path = document.location.pathname;
     if (path.endsWith("/")) {
-        document.getElementById("scriptContainer").innerHTML = "<script src=\"/static/app-bundle.js\" />";
+        document.write("<script src=\"/static/app-bundle.js\"><\/script>");
     }
     else {
-        document.getElementById("scriptContainer").innerHTML = "<script src=\"./static/app-bundle.js\" />";
+        document.write("<script src=\"./static/app-bundle.js\"><\/script>");
     }
 </script>
-
-<script src="./static/app-bundle.js"></script>
 </body>
 </html>

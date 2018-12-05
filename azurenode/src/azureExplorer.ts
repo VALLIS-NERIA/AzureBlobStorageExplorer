@@ -1,13 +1,10 @@
 import {
-    SharedKeyCredential,
-    TokenCredential,
     AnonymousCredential,
     StorageURL,
     ServiceURL,
     Aborter,
     ContainerURL,
     BlobURL,
-    BlockBlobURL,
     Models
 } from "@azure/storage-blob";
 import * as Azure from "@azure/storage-blob";
@@ -126,7 +123,6 @@ export class Container implements ISet {
             prefix = prefix.substring(0, prefix.length - 1);
         }
         for await (const item of this.enumerateItems(prefix)) {
-            console.log(item.path);
             if (item.type === ItemType.Directory && item.path === prefix + delimiter) {
                 return item.asDirectory;
             }
