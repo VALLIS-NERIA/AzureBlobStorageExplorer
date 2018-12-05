@@ -44,8 +44,8 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     constructor(props: IExplorerProp) {
         super(props);
         this.state = {
-            storage: props.storage ? props.storage: new Storage(props.sasUrl),
-            containers: props.containers? props.containers:null,
+            storage: props.storage ? props.storage : new Storage(props.sasUrl),
+            containers: props.containers ? props.containers : null,
             container: null,
             containerName: null,
             set: null,
@@ -70,8 +70,8 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
             // show container list
             return this.storageView();
         }
-        
-            return this.setView();
+
+        return this.setView();
         //return <div> {this.state.container?"YES":"NO"}{this.props.match.params.containerName}</div>;
     }
 
@@ -108,7 +108,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         else {
             const items = this.state.itemList;
             for (const dir of items.directories) {
-                list.push(<Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>);
+                list.push(<div><Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link></div>);
             }
             for (const blob of items.blobs) {
                 const mime: string = blob.properties ? blob.properties.contentType : "";
@@ -198,7 +198,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     private static async getPath(props: IExplorerProp, containers: Container[]): Promise<{
         container: Container,
         containerName: string,
-        set: ISet
+        set: ISet;
     }> {
         let containerName: string = null;
         let dirPath: string = null;

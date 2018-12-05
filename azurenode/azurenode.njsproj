@@ -55,6 +55,9 @@
     <TypeScriptCompile Include="src\azureExplorer.ts" />
     <TypeScriptCompile Include="src\azuretest.ts" />
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
+    <TypeScriptCompile Include="src\Components\Misc\BlobEntry.tsx">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Components\Misc\Loading.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
