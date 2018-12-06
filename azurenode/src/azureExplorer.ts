@@ -9,6 +9,8 @@ import {
 } from "@azure/storage-blob";
 import * as Azure from "@azure/storage-blob";
 
+export type BlobProperties = Models.BlobGetPropertiesResponse;
+
 export const delimiter = "/";
 
 export enum ItemType {
@@ -172,7 +174,7 @@ export class Blob implements IItem {
 
     path: string;
     url: string;
-    properties: Models.BlobGetPropertiesResponse;
+    properties: BlobProperties;
 
     getting: Promise<void>;
 

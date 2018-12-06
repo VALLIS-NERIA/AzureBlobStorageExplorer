@@ -11,26 +11,22 @@
 } from "../../azureExplorer";
 
 import * as React from "react";
-import { Link, RouteComponentProps, match } from "react-router-dom";
+import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
+import { BlobEntry } from "../Misc/BlobEntry";
 
 // TODO: modify MainRouter : (props)=><ContainerExplorer containerName={props.match.params.containerName} ...
 
 interface IExplorerProp extends RouteComponentProps {
     isSearch: boolean;
-    sasUrl: string;
+    path: { containerName: string, dirPath?: string };
     storage?: Storage;
     containers?: Container[];
-    containerName?: string;
-    dirPath?: string;
-    search?: string;
 }
 
 interface IExplorerState {
-    storage: Storage; // Never null
-    containers: Container[]; // null: initializing
+    myProp: IExplorerProp;
     container: Container; // null: storage view
-    containerName: string; // ^
     set: ISet; // ^
     itemList: ItemList; // null: storage view / item data fetching
 }
@@ -44,35 +40,23 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     constructor(props: IExplorerProp) {
         super(props);
         this.state = {
-            storage: props.storage ? props.storage : new Storage(props.sasUrl),
-            containers: props.containers ? props.containers : null,
-            container: null,
-            containerName: null,
+            myProp: props,
+            container: ContainerExplorer.findContainer(props),
             set: null,
             itemList: null
         };
     }
 
     componentDidMount(): void {
-        this.updateState(this.props);
-    }
-
-    componentWillReceiveProps(nextProps: IExplorerProp) {
-        this.updateState(nextProps);
+        this.getSetAndItems(this.props);
     }
 
     render() {
-        if (!this.state.containers) {
-            return <Loading />;
-        }
-
-        if (this.state.containers && !this.state.container) {
-            // show container list
-            return this.storageView();
+        if (!this.state.container) {
+            return this.selectContainerView();
         }
 
         return this.setView();
-        //return <div> {this.state.container?"YES":"NO"}{this.props.match.params.containerName}</div>;
     }
 
     /* Rendering */
@@ -80,16 +64,16 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     private getDirFullPath(dir: Directory): string {
         if (this.props.isSearch) {
             const dirPath = dir.path.replace(/\//g, slash);
-            return `${this.props.location.pathname}?container=${this.state.containerName}&path=${dirPath}`;
+            return `${this.props.location.pathname}?container=${this.state.container.name}&path=${dirPath}`;
         }
         else {
-            return `/${this.state.containerName}/${dir.path}`;
+            return `/${this.state.container.name}/${dir.path}`;
         }
     }
 
-    private storageView(): JSX.Element {
+    private selectContainerView(): JSX.Element {
         const list: JSX.Element[] = [];
-        for (const cont of this.state.containers) {
+        for (const cont of this.props.containers) {
             const path: string = this.props.isSearch
                 ? `${this.props.location.pathname}?container=${cont.name}`
                 : `/${cont.name}`;
@@ -108,14 +92,12 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         else {
             const items = this.state.itemList;
             for (const dir of items.directories) {
-                list.push(<div><Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link></div>);
+                list.push(<div>
+                              <Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>
+                          </div>);
             }
             for (const blob of items.blobs) {
-                const mime: string = blob.properties ? blob.properties.contentType : "";
-                list.push(
-                    <div>
-                        <a href={blob.url} target="_blank" type={mime}> {`Blob: ${blob.path}`} </a>
-                    </div>);
+                list.push(<BlobEntry blob={blob} schema={[(p) => p.contentType, (p) => p.contentLength]} />);
             }
         }
 
@@ -134,57 +116,55 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     /* Life cycle */
 
-    /* Temporarily commented
+    /* Temporarily commented*/
     static getDerivedStateFromProps(newProp: IExplorerProp, prevState: IExplorerState): IExplorerState {
-        const temp: IExplorerState = {
-            storage: null,
-            containers: null,
-            container: null,
-            containerName: null,
+        if (newProp === prevState.myProp) {
+            return null;
+        }
+
+        let container: Container = null;
+        if (prevState.container && prevState.container.name === newProp.path.containerName) {
+            container = prevState.container;
+        }
+        else {
+            container = ContainerExplorer.findContainer(newProp);
+        }
+
+        return {
+            myProp: newProp,
+            container: container,
             set: null,
             itemList: null
         };
-
-        // NOT null
-        temp.storage = prevState.storage ? prevState.storage : new Storage(newProp.sasUrl);
-
-        // MAYBE null
-        temp.containers = prevState.containers;
-        temp.container = prevState.containerName === newProp.containerName ? prevState.container : null;
-        temp.containerName = prevState.containerName === newProp.containerName ? prevState.containerName : null;
-
-        // MUST null
-        temp.set = null;
-        temp.itemList = null;
-
-        return temp;
     }
 
     componentDidUpdate(prevProps: IExplorerProp, prevState: IExplorerState, snapshot?): void {
-        this.updateState(prevProps);
+        if (this.state.container && !this.state.set) {
+            this.getSetAndItems(this.props);
+        }
     }
-    */
 
-    private async updateState(props: IExplorerProp): Promise<void> {
-        const temp: IExplorerState = {
-            storage: null,
-            containers: null,
-            container: null,
-            containerName: null,
-            set: null,
-            itemList: null
-        };
+    private static findContainer(props: IExplorerProp):Container {
+        for (const c of props.containers) {
+            if (c.name === props.path.containerName) {
+                return c;
+            }
+        }
+        return null;
+    }
 
-        temp.storage = this.state.storage ? this.state.storage : new Storage(props.sasUrl);
-        temp.containers = this.state.containers
-            ? this.state.containers
-            : await ContainerExplorer.getContainers(temp.storage);
-        const path = await ContainerExplorer.getPath(props, temp.containers);
-        temp.container = path.container;
-        temp.containerName = path.containerName;
-        temp.set = path.set;
+    private async getSetAndItems(props: IExplorerProp): Promise<void> {
+        const container = this.state.container;
+        const dirPath = this.props.path.dirPath;
 
-        this.setState(temp, this.fetchItems);
+        let set: ISet = container;
+        if (container && dirPath) {
+            const dir = await container.findPrefixDir(dirPath);
+            if (dir) {
+                set = dir;
+            }
+        }
+        this.setState({ set: set, }, () => { this.fetchItems(); });
     }
 
     private static async getContainers(storage: Storage): Promise<Container[]> {
@@ -195,69 +175,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return list;
     }
 
-    private static async getPath(props: IExplorerProp, containers: Container[]): Promise<{
-        container: Container,
-        containerName: string,
-        set: ISet;
-    }> {
-        let containerName: string = null;
-        let dirPath: string = null;
-        if (props.isSearch && props.search) {
-            // ?container=ero&path=Ariel/pro
-            const search = decodeURI(props.search);
-            try {
-                // remove ? then split
-                let a = search.substring(1).split("&");
-                for (const prop of a) {
-                    let b = prop.split("=");
-                    const key = b[0];
-                    let value = b[1];
-                    if (key === "container") {
-                        containerName = value;
-                    }
-                    else if (key === "path" || key == "dir") {
-                        value = value.replace(/\//g, slash);
-                        value = value.replace(slashReg, "/");
-                        if (!value.endsWith("/")) {
-                            value += "/";
-                        }
-                        dirPath = value;
-                    }
-                }
-            } catch (e) {
-                console.error(`Invalid URL query param: ${search}`);
-                console.error(e);
-            }
-        }
-        else {
-            containerName = props.containerName;
-            dirPath = props.dirPath;
-        }
 
-        // Now we have containerName and dirPath
-        let container: Container = null;
-        if (!containerName) {
-            // You are at the home page, should list the containers.
-            return { container: null, containerName: null, set: null };
-        }
-
-        for (const c of containers) {
-            if (c.name === containerName) {
-                container = c;
-            }
-        }
-
-        let set: ISet = container;
-        if (container) {
-            // if dirPath is undefined, the method returns null
-            const dir = dirPath ? await container.findPrefixDir(dirPath) : null;
-            if (dir) {
-                set = dir;
-            }
-        }
-
-        return { container: container, containerName: containerName, set: set };
-    }
 
     private async fetchItems(): Promise<void> {
         if (this.state.set) {
