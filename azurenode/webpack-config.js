@@ -33,6 +33,19 @@ module.exports = {
                     },
                     "less-loader"
                 ]
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    "style-loader",
+                    {
+                        loader: "css-loader",
+                        options: {
+                            importLoaders: 1,
+                            localIdentName: "azure-[name]-[local]"
+                        }
+                    }
+                ]
             }
         ]
     }

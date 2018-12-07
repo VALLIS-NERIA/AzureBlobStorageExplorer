@@ -5,7 +5,7 @@ const styles: any = require("./SmallComponents.module.less");
 
 interface IBlobEntry {
     blob: Blob;
-    schema: ((prop: BlobProperties) => Object)[];
+    schema: string[];
 }
 
 export class BlobEntry extends React.Component<IBlobEntry, {}> {
@@ -15,7 +15,7 @@ export class BlobEntry extends React.Component<IBlobEntry, {}> {
         const list: JSX.Element[] = [];
         if (blob.properties) {
             for (const ext of this.props.schema) {
-                const res = ext(this.props.blob.properties);
+                const res = this.props.blob.properties[ext];
                 if (res) {
                     list.push(<td key={ext.toString()}>{res.toString()}</td>);
                 }

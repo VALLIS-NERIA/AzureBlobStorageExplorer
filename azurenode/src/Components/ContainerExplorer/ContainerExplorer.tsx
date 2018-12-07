@@ -13,9 +13,9 @@
 import * as React from "react";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
-import { BlobEntry } from "../Misc/BlobEntry";
+import { DetailView } from "../Misc/DetailView";
+import "ag-grid-community/dist/styles/ag-theme-material.css";
 
-// TODO: modify MainRouter : (props)=><ContainerExplorer containerName={props.match.params.containerName} ...
 
 interface IExplorerProp extends RouteComponentProps {
     isSearch: boolean;
@@ -33,8 +33,7 @@ interface IExplorerState {
 
 const styles: any = require("./ContainerExplorer.module.less");
 const slash: string = "%2F";
-const slashReg: RegExp = /%2F/g;
-
+const schema: string[] = ["contentType", "contentLength"];
 
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
     constructor(props: IExplorerProp) {
@@ -84,33 +83,57 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                </div>;
     }
 
+    private tableHead(): JSX.Element {
+        const list: JSX.Element[] = [];
+        for (const prop of schema) {
+            list.push(<th key={prop}>{prop}</th>);
+        }
+        return (
+            <tr>
+                <th>Type</th>
+                <th>Name</th>
+                {list}
+            </tr>
+        );
+    }
+
+    private dirEntry(dir: Directory): JSX.Element {
+        return (
+            <tr>
+                <td>Dir</td>
+                <td>
+                    <Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>
+                </td>
+            </tr>
+        );
+    }
+
     private setView(): JSX.Element {
         const list: JSX.Element[] = [];
         if (!this.state.itemList) {
             list.push(<Loading />);
         }
         else {
-            const items = this.state.itemList;
-            for (const dir of items.directories) {
-                list.push(<div>
-                              <Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>
-                          </div>);
-            }
-            for (const blob of items.blobs) {
-                list.push(<BlobEntry blob={blob} schema={[(p) => p.contentType, (p) => p.contentLength]} />);
-            }
+            //const items = this.state.itemList;
+            //list.push(this.tableHead());
+            //for (const dir of items.directories) {
+            //    list.push(this.dirEntry(dir));
+            //}
+            //for (const blob of items.blobs) {
+            //    list.push(<BlobEntry blob={blob} schema={schema} />);
+            //}
+            list.push(
+                <DetailView className={`ag-theme-material ${styles.detail}`} dirUrl={this.getDirFullPath.bind(this)} itemList={this.state.itemList} schema={schema} />);
         }
 
         return (
-            <div>
+            <div className={styles.container}>
                 <div className={styles.backToTop}>
                     <Link to={this.props.isSearch ? this.props.location.pathname : "/"}>
                         Back to top
                     </Link>
                 </div>
-                <div>
-                    {list}
-                </div>
+                {list}
             </div>);
     }
 
@@ -144,7 +167,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         }
     }
 
-    private static findContainer(props: IExplorerProp):Container {
+    private static findContainer(props: IExplorerProp): Container {
         for (const c of props.containers) {
             if (c.name === props.path.containerName) {
                 return c;
@@ -175,13 +198,10 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return list;
     }
 
-
-
     private async fetchItems(): Promise<void> {
         if (this.state.set) {
             const res = await this.state.set.getItemsList();
             this.setState({ itemList: res });
-            // TODO: experiment
             res.waitBlobMetadata().then(() => this.setState({ itemList: res }));
         }
     }

@@ -15,11 +15,13 @@ import { ContainerExplorer } from "../ContainerExplorer/ContainerExplorer";
 import { Loading } from "../Misc/Loading";
 
 interface IRouterProp {
-    url?: string;
+    sasUrl?: string;
+    urlPrefix?: string;
+    useMatch?: boolean;
 }
 
 interface IRouterState {
-    url?: string;
+    prefix: string;
     storage: Storage;
     containers: Container[];
 }
@@ -31,8 +33,8 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
         super(props);
 
         let url: string;
-        if (props.url) {
-            url = props.url;
+        if (props.sasUrl) {
+            url = props.sasUrl;
         }
         else {
             url = null;
@@ -43,7 +45,7 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
         }
 
         this.state = {
-            url: url,
+            prefix: this.formatPrefix(this.props.urlPrefix),
             storage: new Storage(url),
             containers: null
         };
@@ -66,7 +68,7 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
         let dirPath: string = null;
         // ?container=ero&path=Ariel/pro
         const search = decodeURI(props.location.search);
-        if (search.length < 5) {
+        if (search.length < 2) {
             return {
                 containerName: null,
                 dirPath: null
@@ -75,20 +77,27 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
         try {
             // remove ? then split
             let a = search.substring(1).split("&");
-            for (const prop of a) {
-                let b = prop.split("=");
-                const key = b[0];
-                let value = b[1];
-                if (key === "container") {
-                    containerName = value;
-                }
-                else if (key === "path" || key == "dir") {
-                    value = value.replace(/\//g, slash);
-                    value = value.replace(slashReg, "/");
-                    if (!value.endsWith("/")) {
-                        value += "/";
+            if (a.length === 1 && a[0].split("=").length===1) {
+                const r = new RegExp("/*([^/]+)/*(.*)");
+                const match = a[0].match(r);
+                [, containerName, dirPath] = match;
+            }
+            else {
+                for (const prop of a) {
+                    let b = prop.split("=");
+                    const key = b[0];
+                    let value = b[1];
+                    if (key === "container") {
+                        containerName = value;
                     }
-                    dirPath = value;
+                    else if (key === "path" || key == "dir") {
+                        value = value.replace(/\//g, slash);
+                        value = value.replace(slashReg, "/");
+                        if (!value.endsWith("/")) {
+                            value += "/";
+                        }
+                        dirPath = value;
+                    }
                 }
             }
         } catch (e) {
@@ -102,6 +111,25 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
         };
     }
 
+    // the returned prefix should begin with a slash, and has no trailing slashes
+    private formatPrefix(prefix?: string): string {
+        if (!prefix || prefix === "") {
+            return "";
+        }
+
+        while (prefix.endsWith("/")) {
+            prefix = prefix.substring(0, prefix.length - 1);
+        }
+
+        while (prefix.startsWith("/")) {
+            prefix = prefix.substring(1, prefix.length);
+        }
+
+        if (prefix.length === 0) return "";
+
+        return "/" + prefix;
+    }
+
     render(): JSX.Element {
         if (!this.state.containers) {
             return <Loading />;
@@ -112,7 +140,7 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
                 <Switch>
                     <Route
                         exact={true}
-                        path="/"
+                        path={`${this.state.prefix}/`}
                         component={
                             (props: RouteComponentProps) =>
                                 <ContainerExplorer
@@ -125,13 +153,14 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
                                 <ContainerExplorer
                                     storage={this.state.storage} containers={this.state.containers}
                                     isSearch={true} path={MainRouter.getPathFromSearch(props)} {...props} />} />
-                    <Route
-                        path="/:containerName/:dirPath*"
-                        component={
-                            (props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
-                                <ContainerExplorer
-                                    storage={this.state.storage} containers={this.state.containers} isSearch={false}
-                                    path={props.match.params}{...props} />} />
+                    {this.props.useMatch
+                        ? <Route
+                              path={`${this.state.prefix}/:containerName/:dirPath*`}
+                              component={(props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
+                                  <ContainerExplorer
+                                      storage={this.state.storage} containers={this.state.containers} isSearch={false}
+                                      path={props.match.params}{...props} />} />
+                        : null}
                 </Switch>
             </Router>
         );
