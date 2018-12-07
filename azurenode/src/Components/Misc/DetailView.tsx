@@ -56,6 +56,7 @@ export class DetailView extends React.Component<IDetailViewProp, IDetailViewStat
         for (const blob of newProp.itemList.blobs) {
             const entry: { [key: string]: Object } = {};
             entry.type = "Blob";
+            // TODO: show blob name instead of path
             entry.name = blob.path;
             entry.link = blob.url;
             if (blob.properties) {
@@ -69,11 +70,6 @@ export class DetailView extends React.Component<IDetailViewProp, IDetailViewStat
         return { columnDefs: columnDefs, data: data };
     }
 
-    onFirstDataRendered = (params)=> {
-        params.api.sizeColumnsToFit();
-        params.columnApi.autoSizeColumns();
-    }
-
     render() {
         return (
             <div className={this.props.className}>
@@ -82,6 +78,11 @@ export class DetailView extends React.Component<IDetailViewProp, IDetailViewStat
                     enableFilter={true}
                     enableColResize={true}
                     onFirstDataRendered={(params) => {
+                        window.addEventListener("resize", function () {
+                            setTimeout(function () {
+                                params.api.sizeColumnsToFit();
+                            });
+                        });
                         params.columnApi.autoSizeColumns(["type", "name"]);
                         params.api.sizeColumnsToFit();
                     }}
