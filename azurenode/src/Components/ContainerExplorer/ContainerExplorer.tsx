@@ -78,52 +78,18 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                 : `/${cont.name}`;
             list.push(<Link to={path}> {`Container: ${cont.name}`} </Link>);
         }
-        return <div>
+        return <div className={styles.detail}>
                    {list}
                </div>;
     }
 
-    private tableHead(): JSX.Element {
-        const list: JSX.Element[] = [];
-        for (const prop of schema) {
-            list.push(<th key={prop}>{prop}</th>);
-        }
-        return (
-            <tr>
-                <th>Type</th>
-                <th>Name</th>
-                {list}
-            </tr>
-        );
-    }
-
-    private dirEntry(dir: Directory): JSX.Element {
-        return (
-            <tr>
-                <td>Dir</td>
-                <td>
-                    <Link to={this.getDirFullPath(dir)}> {`Dir: ${dir.path}`} </Link>
-                </td>
-            </tr>
-        );
-    }
-
     private setView(): JSX.Element {
-        const list: JSX.Element[] = [];
+        let view: JSX.Element;
         if (!this.state.itemList) {
-            list.push(<Loading />);
+            view=<Loading />;
         }
         else {
-            //const items = this.state.itemList;
-            //list.push(this.tableHead());
-            //for (const dir of items.directories) {
-            //    list.push(this.dirEntry(dir));
-            //}
-            //for (const blob of items.blobs) {
-            //    list.push(<BlobEntry blob={blob} schema={schema} />);
-            //}
-            list.push(
-                <DetailView className={`ag-theme-material ${styles.detail}`} dirUrl={this.getDirFullPath.bind(this)} itemList={this.state.itemList} schema={schema} />);
+            view = <DetailView className={`ag-theme-material ${styles.detail}`} dirUrl={this.getDirFullPath.bind(this)} itemList={this.state.itemList} schema={schema} />;
         }
 
         return (
@@ -133,7 +99,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                         Back to top
                     </Link>
                 </div>
-                {list}
+                {view}
             </div>);
     }
 
