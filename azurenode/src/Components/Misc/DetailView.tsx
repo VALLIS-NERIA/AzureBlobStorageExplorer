@@ -5,11 +5,18 @@ import * as AgGrid from "ag-grid-react";
 import { ColDef, ICellRendererParams, ICellRendererComp } from "ag-grid-community";
 import "ag-grid-community/dist/styles/ag-grid.css";
 
+export type DisplaySchema = IDisplaySchema | string;
+
+interface IDisplaySchema {
+    name: string,
+    formatter?: (any) => string,
+}
+
 interface IDetailViewProp {
     className?: string;
     itemList: ItemList;
     dirUrl(dir: Directory): string;
-    schema: string[];
+    schemas: DisplaySchema[];
 }
 
 interface IDetailViewState {
@@ -32,6 +39,10 @@ class NameCellRenderer extends React.Component<ICellRendererParams> {
     }
 }
 
+function getName(schema: DisplaySchema): string {
+    return typeof schema === "string" ? schema as string : (schema as IDisplaySchema).name;
+}
+
 export class DetailView extends React.Component<IDetailViewProp, IDetailViewState> {
     constructor(props: IDetailViewProp) {
         super(props);
@@ -45,8 +56,9 @@ export class DetailView extends React.Component<IDetailViewProp, IDetailViewStat
         const data: { [key: string]: Object } [] = [];
         columnDefs.push({ headerName: "type", field: "type" });
         columnDefs.push({ headerName: "name", field: "name", cellRendererFramework: NameCellRenderer });
-        for (const prop of newProp.schema) {
-            columnDefs.push({ headerName: prop, field: prop });
+        for (const prop of newProp.schemas) {
+            const name = getName(prop);
+            columnDefs.push({ headerName: name, field: name });
         }
 
         for (const dir of newProp.itemList.directories) {
@@ -60,8 +72,18 @@ export class DetailView extends React.Component<IDetailViewProp, IDetailViewStat
             entry.name = blob.path;
             entry.link = blob.url;
             if (blob.properties) {
-                for (const prop of newProp.schema) {
-                    entry[prop] = blob.properties[prop];
+                for (const prop of newProp.schemas) {
+                    if (typeof prop === "string") {
+                        entry[prop] = blob.properties[prop];
+                    }
+                    else {
+                        if (prop.formatter) {
+                            entry[prop.name] = prop.formatter(blob.properties[prop.name]);
+                        }
+                        else {
+                            entry[prop.name] = blob.properties[prop.name];
+                        }
+                    }
                 }
             }
             data.push(entry);
@@ -78,11 +100,12 @@ export class DetailView extends React.Component<IDetailViewProp, IDetailViewStat
                     enableFilter={true}
                     enableColResize={true}
                     onFirstDataRendered={(params) => {
-                        window.addEventListener("resize", function () {
-                            setTimeout(function () {
-                                params.api.sizeColumnsToFit();
+                        window.addEventListener("resize",
+                            function() {
+                                setTimeout(function() {
+                                    params.api.sizeColumnsToFit();
+                                });
                             });
-                        });
                         params.columnApi.autoSizeColumns(["type", "name"]);
                         params.api.sizeColumnsToFit();
                     }}

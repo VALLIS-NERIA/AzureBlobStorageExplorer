@@ -13,7 +13,7 @@
 import * as React from "react";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
-import { DetailView } from "../Misc/DetailView";
+import { DetailView, DisplaySchema } from "../Misc/DetailView";
 import "ag-grid-community/dist/styles/ag-theme-material.css";
 
 
@@ -31,9 +31,10 @@ interface IExplorerState {
     itemList: ItemList; // null: storage view / item data fetching
 }
 
+
 const styles: any = require("./ContainerExplorer.module.less");
 const slash: string = "%2F";
-const schema: string[] = ["contentType", "contentLength"];
+const schema: DisplaySchema[] = ["contentType" , { name: "contentLength", formatter: (a) => `${(a/1024).toFixed(0)}KB` }];
 
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
     constructor(props: IExplorerProp) {
@@ -89,7 +90,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
             view=<Loading />;
         }
         else {
-            view = <DetailView className={`ag-theme-material ${styles.detail}`} dirUrl={this.getDirFullPath.bind(this)} itemList={this.state.itemList} schema={schema} />;
+            view = <DetailView className={`ag-theme-material ${styles.detail}`} dirUrl={this.getDirFullPath.bind(this)} itemList={this.state.itemList} schemas={schema} />;
         }
 
         return (
