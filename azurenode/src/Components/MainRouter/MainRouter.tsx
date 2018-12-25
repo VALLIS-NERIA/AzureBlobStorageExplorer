@@ -42,6 +42,9 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
             if (node && node.innerText.trim().startsWith("http")) {
                 url = node.innerText.trim();
             }
+            else {
+                throw new Error("No SAS provided.");
+            }
         }
 
         this.state = {

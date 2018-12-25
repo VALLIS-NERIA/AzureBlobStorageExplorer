@@ -14,14 +14,15 @@ import * as React from "react";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
 import { DetailView, DisplaySchema } from "../Misc/DetailView";
+import { ImageView } from "../Misc/ImageView";
 import "ag-grid-community/dist/styles/ag-theme-material.css";
 
 
 interface IExplorerProp extends RouteComponentProps {
     isSearch: boolean;
     path: { containerName: string, dirPath?: string };
-    storage?: Storage;
-    containers?: Container[];
+    storage: Storage;
+    containers: Container[];
 }
 
 interface IExplorerState {
@@ -34,7 +35,8 @@ interface IExplorerState {
 
 const styles: any = require("./ContainerExplorer.module.less");
 const slash: string = "%2F";
-const schema: DisplaySchema[] = ["contentType" , { name: "contentLength", formatter: (a) => `${(a/1024).toFixed(0)}KB` }];
+const schema: DisplaySchema[] =
+    ["contentType", { name: "contentLength", formatter: (a) => `${(a / 1024).toFixed(0)}KB` }];
 
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
     constructor(props: IExplorerProp) {
@@ -61,15 +63,6 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     /* Rendering */
 
-    private getDirFullPath(dir: Directory): string {
-        if (this.props.isSearch) {
-            const dirPath = dir.path.replace(/\//g, slash);
-            return `${this.props.location.pathname}?container=${this.state.container.name}&path=${dirPath}`;
-        }
-        else {
-            return `/${this.state.container.name}/${dir.path}`;
-        }
-    }
 
     private selectContainerView(): JSX.Element {
         const list: JSX.Element[] = [];
@@ -87,12 +80,27 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     private setView(): JSX.Element {
         let view: JSX.Element;
         if (!this.state.itemList) {
-            view=<Loading />;
+            view = <Loading />;
         }
         else {
-            view = <DetailView className={`ag-theme-material ${styles.detail}`} dirUrl={this.getDirFullPath.bind(this)} itemList={this.state.itemList} schemas={schema} />;
-        }
+            view = <DetailView
+                       className={`ag-theme-material ${styles.detail}`}
+                       dirUrl={this.getDirFullPath.bind(this)}
+                       itemList={this.state.itemList}
+                schemas={schema} />;
 
+            if (this.state.itemList.blobs.some((b) => b.properties && b.properties.contentType.includes("image"))) {
+                const newView = (
+                    <React.Fragment>
+                        {view}
+                        <ImageView imgs={this.state.itemList.blobs
+                            .filter((b) => b.properties && b.properties.contentType.includes("image"))
+                            .map((b) => b.path)} />
+                    </React.Fragment>
+                );
+                view = newView;
+            }
+        }
         return (
             <div className={styles.container}>
                 <div className={styles.backToTop}>
@@ -102,6 +110,16 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                 </div>
                 {view}
             </div>);
+    }
+
+    private getDirFullPath(dir: Directory): string {
+        if (this.props.isSearch) {
+            const dirPath = dir.path.replace(/\//g, slash);
+            return `${this.props.location.pathname}?container=${this.state.container.name}&path=${dirPath}`;
+        }
+        else {
+            return `/${this.state.container.name}/${dir.path}`;
+        }
     }
 
     /* Life cycle */
@@ -155,14 +173,6 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
             }
         }
         this.setState({ set: set, }, () => { this.fetchItems(); });
-    }
-
-    private static async getContainers(storage: Storage): Promise<Container[]> {
-        const list: Container[] = [];
-        for await (const container of storage.enumerateContainers()) {
-            list.push(container);
-        }
-        return list;
     }
 
     private async fetchItems(): Promise<void> {

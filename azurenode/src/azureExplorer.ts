@@ -85,7 +85,11 @@ export class Storage {
 
     constructor(sasUrl: string) {
         this.url = sasUrl;
-        this.serviceURL = new ServiceURL(this.url, this.pipeline);
+        try {
+            this.serviceURL = new ServiceURL(this.url, this.pipeline);
+        } catch (e) {
+            throw new Error("Init storage failed. Please check your SAS.");
+        }
     }
 
     public async* enumerateContainers(): AsyncIterableIterator<Container> {

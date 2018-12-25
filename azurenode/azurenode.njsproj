@@ -58,6 +58,9 @@
     <TypeScriptCompile Include="src\Components\Misc\DetailView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\Components\Misc\ImageView.tsx">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Components\Misc\Loading.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>

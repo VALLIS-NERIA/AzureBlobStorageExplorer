@@ -2,4 +2,10 @@ import * as React from "react";
 import { MainRouter } from "./Components/MainRouter/MainRouter";
 import * as ReactDOM from "react-dom";
 
-ReactDOM.render(<MainRouter />, document.getElementById("root"));
+let sas: string;
+try {
+    sas = require("./sas.ts").default;
+} catch (e) {
+    sas = null;
+}
+ReactDOM.render(<MainRouter sasUrl={sas} />, document.getElementById("root"));

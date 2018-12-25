@@ -28,6 +28,7 @@
     "postcss-loader": "^3.0.0",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
+    "react-grid-gallery": "^0.5.3",
     "react-images-viewer": "^1.6.2",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
