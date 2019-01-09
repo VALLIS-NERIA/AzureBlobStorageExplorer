@@ -1,11 +1,11 @@
-﻿const path = require('path')
+﻿const path = require("path")
 module.exports = {
     devtool: "source-map",
     entry: "./src/index.tsx",
     mode: "development",
     output: {
         filename: "app-bundle.js",
-        path: path.resolve(__dirname, 'dist/static')
+        path: path.resolve(__dirname, "dist/static")
     },
     resolve: {
         extensions: [".Webpack.js", ".web.js", ".ts", ".tsx", ".js", ".jsx"]
@@ -16,7 +16,10 @@ module.exports = {
                 test: /\.tsx|\.ts$/,
                 exclude: /(node_modules|bower_components)/,
                 use: {
-                    loader: "ts-loader"
+                    loader: "ts-loader",
+                    options: {
+
+                    }
                 }
             },
             {
@@ -42,10 +45,14 @@ module.exports = {
                         loader: "css-loader",
                         options: {
                             importLoaders: 1,
-                            localIdentName: "azure-[name]-[local]"
+                            localIdentName: "[name]"
                         }
                     }
                 ]
+            },
+            {
+                test: /\.(eot|woff2|woff|ttf|svg|gif|png)/,
+                loader: "url-loader"
             }
         ]
     }

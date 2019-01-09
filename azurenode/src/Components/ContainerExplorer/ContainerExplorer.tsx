@@ -13,8 +13,7 @@
 import * as React from "react";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
-import { DetailView, DisplaySchema } from "../Misc/DetailView";
-import { ImageView } from "../Misc/ImageView";
+import SetView from "../SetExplorer/SetExplorer";
 import "ag-grid-community/dist/styles/ag-theme-material.css";
 
 
@@ -25,7 +24,7 @@ interface IExplorerProp extends RouteComponentProps {
     containers: Container[];
 }
 
-interface IExplorerState {
+export interface IExplorerState {
     myProp: IExplorerProp;
     container: Container; // null: storage view
     set: ISet; // ^
@@ -35,8 +34,6 @@ interface IExplorerState {
 
 const styles: any = require("./ContainerExplorer.module.less");
 const slash: string = "%2F";
-const schema: DisplaySchema[] =
-    ["contentType", { name: "contentLength", formatter: (a) => `${(a / 1024).toFixed(0)}KB` }];
 
 export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerState> {
     constructor(props: IExplorerProp) {
@@ -78,29 +75,6 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     }
 
     private setView(): JSX.Element {
-        let view: JSX.Element;
-        if (!this.state.itemList) {
-            view = <Loading />;
-        }
-        else {
-            view = <DetailView
-                       className={`ag-theme-material ${styles.detail}`}
-                       dirUrl={this.getDirFullPath.bind(this)}
-                       itemList={this.state.itemList}
-                schemas={schema} />;
-
-            if (this.state.itemList.blobs.some((b) => b.properties && b.properties.contentType.includes("image"))) {
-                const newView = (
-                    <React.Fragment>
-                        {view}
-                        <ImageView imgs={this.state.itemList.blobs
-                            .filter((b) => b.properties && b.properties.contentType.includes("image"))
-                            .map((b) => b.path)} />
-                    </React.Fragment>
-                );
-                view = newView;
-            }
-        }
         return (
             <div className={styles.container}>
                 <div className={styles.backToTop}>
@@ -108,23 +82,26 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                         Back to top
                     </Link>
                 </div>
-                {view}
+                <SetView container={this.state.container}
+                         set={this.state.set} itemList={this.state.itemList} pathGen={this.getDirFullPathGenerator()}/>
             </div>);
+
     }
 
-    private getDirFullPath(dir: Directory): string {
+    private getDirFullPathGenerator():(dir: Directory)=> string {
         if (this.props.isSearch) {
-            const dirPath = dir.path.replace(/\//g, slash);
-            return `${this.props.location.pathname}?container=${this.state.container.name}&path=${dirPath}`;
+            return (dir) => {
+                const dirPath = dir.path.replace(/\//g, slash);
+                return `${this.props.location.pathname}?container=${this.state.container.name}&path=${dirPath}`;
+            };
         }
         else {
-            return `/${this.state.container.name}/${dir.path}`;
+            return (dir) => `/${this.state.container.name}/${dir.path}`;
         }
     }
 
     /* Life cycle */
-
-    /* Temporarily commented*/
+    
     static getDerivedStateFromProps(newProp: IExplorerProp, prevState: IExplorerState): IExplorerState {
         if (newProp === prevState.myProp) {
             return null;

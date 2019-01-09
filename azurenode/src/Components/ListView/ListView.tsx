@@ -12,14 +12,14 @@ interface IDisplaySchema {
     formatter?: (any) => string,
 }
 
-interface IDetailViewProp {
+interface IListViewProp {
     className?: string;
     itemList: ItemList;
     dirUrl(dir: Directory): string;
     schemas: DisplaySchema[];
 }
 
-interface IDetailViewState {
+interface IListViewState {
     columnDefs: ColDef[];
     data: { [key: string]: Object }[];
 }
@@ -39,25 +39,23 @@ class NameCellRenderer extends React.Component<ICellRendererParams> {
     }
 }
 
-function getName(schema: DisplaySchema): string {
-    return typeof schema === "string" ? schema as string : (schema as IDisplaySchema).name;
-}
-
-export class DetailView extends React.Component<IDetailViewProp, IDetailViewState> {
-    constructor(props: IDetailViewProp) {
+export class ListView extends React.Component<IListViewProp, IListViewState> {
+    constructor(props: IListViewProp) {
         super(props);
 
-        this.state = DetailView.getDerivedStateFromProps(props, null);
+        this.state = ListView.getDerivedStateFromProps(props, null);
     }
 
 
-    static getDerivedStateFromProps(newProp: IDetailViewProp, prevState: IDetailViewState): IDetailViewState {
+    static getDerivedStateFromProps(newProp: IListViewProp, prevState: IListViewState): IListViewState {
         const columnDefs: ColDef[] = [];
-        const data: { [key: string]: Object } [] = [];
+        const data: { [key: string]: Object }[] = [];
+
         columnDefs.push({ headerName: "type", field: "type" });
         columnDefs.push({ headerName: "name", field: "name", cellRendererFramework: NameCellRenderer });
-        for (const prop of newProp.schemas) {
-            const name = getName(prop);
+
+        for (const schema of newProp.schemas) {
+            const name = typeof schema === "string" ? schema as string : (schema as IDisplaySchema).name;
             columnDefs.push({ headerName: name, field: name });
         }
 

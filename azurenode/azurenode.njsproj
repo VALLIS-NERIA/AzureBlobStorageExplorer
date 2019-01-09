@@ -36,7 +36,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="command" />
+    <Content Include="run.cmd" />
     <Content Include="dist\static\app-bundle.js.map" />
     <Content Include="dist\index.html">
       <SubType>Code</SubType>
@@ -50,15 +50,19 @@
     <Content Include="src\Components\Misc\SmallComponents.module.less">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="src\Components\SetExplorer\SetExplorer.module.less" />
+    <Content Include="src\Lib\justifiedGallery\justifiedGallery.min.css" />
     <Content Include="tsconfig.json" />
     <Content Include="package.json" />
     <TypeScriptCompile Include="src\azureExplorer.ts" />
     <TypeScriptCompile Include="src\azuretest.ts" />
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
-    <TypeScriptCompile Include="src\Components\Misc\DetailView.tsx">
+    <TypeScriptCompile Include="src\Components\SetExplorer\SetExplorer.tsx" />
+    <TypeScriptCompile Include="src\Components\ImageView\jQueryImage.ts" />
+    <TypeScriptCompile Include="src\Components\ListView\ListView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\Components\Misc\ImageView.tsx">
+    <TypeScriptCompile Include="src\Components\ImageView\ImageView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\Components\Misc\Loading.tsx">
@@ -80,10 +84,16 @@
     <Folder Include="src\Components\ContainerExplorer\" />
     <Folder Include="src\Components\MainRouter\" />
     <Folder Include="src\Components\Misc\" />
+    <Folder Include="src\Components\ListView\" />
+    <Folder Include="src\Components\SetExplorer\" />
+    <Folder Include="src\Components\ImageView\" />
+    <Folder Include="src\Lib\" />
+    <Folder Include="src\Lib\justifiedGallery\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="dist\static\app-bundle.js" />
     <Compile Include="dist\server.ts" />
+    <Compile Include="src\Lib\justifiedGallery\jquery.justifiedGallery.min.js" />
     <Compile Include="webpack-config-pro.js">
       <SubType>Code</SubType>
     </Compile>

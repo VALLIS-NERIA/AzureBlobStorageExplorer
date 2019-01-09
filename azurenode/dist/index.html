@@ -24,6 +24,21 @@
             margin-left:20px;
         }
     </style>
+    <script>
+        const path = document.location.pathname;
+        var _appender;
+        if (path.endsWith("/")) {
+            _appender = (filename) => document.write("<script src=\"" + filename + "\"><\/script>");
+        }
+        else {
+            _appender = (filename) => document.write("<script src=\"." + filename + "\"><\/script>");
+        }
+    </script>
+    <script>
+        //_appender("/static/jquery.min.js");
+        //_appender("/static/js/lightgallery.js");
+        //_appender("/static/js/lightgallery-all.js");
+    </script>
 </head>
 <body>
 
@@ -34,13 +49,7 @@
 <!-- scripts -->
 <div id="scriptContainer"></div>
 <script>
-    const path = document.location.pathname;
-    if (path.endsWith("/")) {
-        document.write("<script src=\"/static/app-bundle.js\"><\/script>");
-    }
-    else {
-        document.write("<script src=\"./static/app-bundle.js\"><\/script>");
-    }
+    _appender("/static/app-bundle.js");
 </script>
 </body>
 </html>
