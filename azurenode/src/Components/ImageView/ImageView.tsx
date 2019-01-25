@@ -7,9 +7,10 @@ import "lightgallery/dist/css/lg-transitions.css";
 import "lightgallery/dist/js/lightgallery-all";
 import "lg-thumbnail";
 import "../../Lib/justifiedGallery/jquery.justifiedGallery.min.js";
-import "../../LibjustifiedGallery/justifiedGallery.min.css";
+import "../../Lib/justifiedGallery/justifiedGallery.min.css";
 
 export interface IImageViewProps {
+    className? : string;
     imgs?: string[];
 }
 
@@ -41,7 +42,7 @@ export class ImageView extends React.Component<IImageViewProps, {}> {
                 list.push(<a className="imageItem" key={img} href={img}><img src={img} /> </a>);
             }
         }
-        return <div ref={el => this.el = el}>
+        return <div className={this.props.className} ref={el => this.el = el}>
             {list}
         </div>;
     }

@@ -60,14 +60,13 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     /* Rendering */
 
-
     private selectContainerView(): JSX.Element {
         const list: JSX.Element[] = [];
         for (const cont of this.props.containers) {
             const path: string = this.props.isSearch
                 ? `${this.props.location.pathname}?container=${cont.name}`
                 : `/${cont.name}`;
-            list.push(<Link to={path}> {`Container: ${cont.name}`} </Link>);
+            list.push(<Link style={{display: "block"}} to={path}> {`Container: ${cont.name}`} </Link>);
         }
         return <div className={styles.detail}>
                    {list}
