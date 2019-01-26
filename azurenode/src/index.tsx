@@ -16,5 +16,5 @@ const imgs = [
     "https://c8.staticflickr.com/9/8104/28973555735_ae7c208970_n.jpg"
 ];
 
-ReactDOM.render(<MainRouter sasUrl={sas} />, document.getElementById("root"));
+ReactDOM.render(<MainRouter sasUrl={sas} useMatch={true}/>, document.getElementById("root"));
 //ReactDOM.render(<ImageView imgs={imgs} />, document.getElementById("root"));

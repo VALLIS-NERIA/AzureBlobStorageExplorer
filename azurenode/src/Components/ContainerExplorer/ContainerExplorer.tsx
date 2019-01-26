@@ -13,8 +13,9 @@
 import * as React from "react";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
+import { Header } from "../Misc/Header";
+import * as Utils from "../Misc/Utils";
 import SetView from "../SetExplorer/SetExplorer";
-import "ag-grid-community/dist/styles/ag-theme-material.css";
 
 
 interface IExplorerProp extends RouteComponentProps {
@@ -66,7 +67,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
             const path: string = this.props.isSearch
                 ? `${this.props.location.pathname}?container=${cont.name}`
                 : `/${cont.name}`;
-            list.push(<Link style={{display: "block"}} to={path}> {`Container: ${cont.name}`} </Link>);
+            list.push(<Link style={{ display: "block" }} to={path}> {`Container: ${cont.name}`} </Link>);
         }
         return <div className={styles.detail}>
                    {list}
@@ -77,30 +78,31 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return (
             <div className={styles.container}>
                 <div className={styles.backToTop}>
-                    <Link to={this.props.isSearch ? this.props.location.pathname : "/"}>
-                        Back to top
-                    </Link>
+                    { /*<Link to={this.props.isSearch ? this.props.location.pathname : "/"}>
+                         Back to top
+                     </Link>*/
+                    }
+                    <Header
+                        basePath={this.props.location.pathname}
+                        isSearch={this.props.isSearch}
+                        container={this.props.path.containerName}
+                        dir={this.props.path.dirPath}/>
                 </div>
-                <SetView container={this.state.container}
-                         set={this.state.set} itemList={this.state.itemList} pathGen={this.getDirFullPathGenerator()}/>
+                <SetView
+                    container={this.state.container}
+                    set={this.state.set}
+                    itemList={this.state.itemList}
+                    pathGen={(dir) =>
+                        Utils.getDirFullPathGenerator(this.props.isSearch)(
+                            this.props.location.pathname,
+                            this.state.container.name,
+                            dir.path)}/>
             </div>);
 
     }
 
-    private getDirFullPathGenerator():(dir: Directory)=> string {
-        if (this.props.isSearch) {
-            return (dir) => {
-                const dirPath = dir.path.replace(/\//g, slash);
-                return `${this.props.location.pathname}?container=${this.state.container.name}&path=${dirPath}`;
-            };
-        }
-        else {
-            return (dir) => `/${this.state.container.name}/${dir.path}`;
-        }
-    }
-
     /* Life cycle */
-    
+
     static getDerivedStateFromProps(newProp: IExplorerProp, prevState: IExplorerState): IExplorerState {
         if (newProp === prevState.myProp) {
             return null;

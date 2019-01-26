@@ -57,12 +57,13 @@
     <TypeScriptCompile Include="src\azureExplorer.ts" />
     <TypeScriptCompile Include="src\azuretest.ts" />
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
+    <TypeScriptCompile Include="src\Components\Misc\Header.tsx" />
+    <TypeScriptCompile Include="src\Components\Misc\Utils.ts" />
     <TypeScriptCompile Include="src\Components\SetExplorer\SetExplorer.tsx" />
-    <TypeScriptCompile Include="src\Components\ImageView\jQueryImage.ts" />
-    <TypeScriptCompile Include="src\Components\ListView\ListView.tsx">
+    <TypeScriptCompile Include="src\Components\SetExplorer\ListView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\Components\ImageView\ImageView.tsx">
+    <TypeScriptCompile Include="src\Components\SetExplorer\ImageView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\Components\Misc\Loading.tsx">
@@ -84,9 +85,7 @@
     <Folder Include="src\Components\ContainerExplorer\" />
     <Folder Include="src\Components\MainRouter\" />
     <Folder Include="src\Components\Misc\" />
-    <Folder Include="src\Components\ListView\" />
     <Folder Include="src\Components\SetExplorer\" />
-    <Folder Include="src\Components\ImageView\" />
     <Folder Include="src\Lib\" />
     <Folder Include="src\Lib\justifiedGallery\" />
   </ItemGroup>

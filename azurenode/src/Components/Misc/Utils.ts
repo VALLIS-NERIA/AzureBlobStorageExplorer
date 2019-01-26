@@ -1,0 +1,82 @@
+import {
+    Container,
+    Directory,
+    ItemList,
+    ISet
+} from "../../azureExplorer";
+
+export const slash: string = "%2F";
+
+function getDirFullPathSearch(path: string, container?: string, dir?: string) {
+    if (!container) return path;
+    if (!dir) return `${path}?container=${container}`;
+
+    const dirPath = dir.replace(/\//g, slash);
+    return `${path}?container=${container}&path=${dirPath}`;
+}
+
+function getDirFullPathNotSearch(path: string, container?: string, dir?: string) {
+    if (!container) return "/";
+    if (!dir) return `/${container}`;
+    return `/${container}/${dir}`;
+}
+
+export function getDirFullPathGenerator(isSearch: boolean):
+    (path: string, container?: string, dir?: string) => string {
+    return isSearch ? getDirFullPathSearch : getDirFullPathNotSearch;
+}
+
+export function getPathFromSearch(searchStr: string): { containerName: string, dirPath: string } {
+    const slash: string = "%2F";
+    const slashReg: RegExp = /%2F/g;
+    let containerName: string = null;
+    let dirPath: string = null;
+    // ?container=ero&path=Ariel/pro
+    const search = decodeURI(searchStr);
+    if (search.length < 2) {
+        return {
+            containerName: null,
+            dirPath: null
+        };
+    }
+    try {
+        // remove ? then split
+        let a = search.substring(1).split("&");
+        // ?ero%2FAriel%2Fpro
+        if (a.length === 1 && a[0].split("=").length === 1) {
+            const r = new RegExp("/*([^/]+)/*(.*)");
+            const match = a[0].match(r);
+            [, containerName, dirPath] = match;
+        }
+        else {
+            for (const prop of a) {
+                let b = prop.split("=");
+                const key = b[0];
+                let value = b[1];
+                if (key === "container") {
+                    containerName = value;
+                }
+                else if (key === "path" || key === "dir") {
+                    value = value.replace(/\//g, slash);
+                    value = value.replace(slashReg, "/");
+                    if (!value.endsWith("/")) {
+                        value += "/";
+                    }
+                    dirPath = value;
+                }
+            }
+        }
+    } catch (e) {
+        console.error(`Invalid URL query param: ${search}`);
+        console.error(e);
+        return {
+            containerName: null,
+            dirPath: null
+        };
+    }
+
+    return {
+        containerName: containerName,
+        dirPath: dirPath
+    };
+}

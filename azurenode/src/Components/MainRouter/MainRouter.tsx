@@ -13,6 +13,7 @@ import { BrowserRouter, Router, Route, Link, RouteComponentProps, Switch } from 
 import { createBrowserHistory, createHashHistory, createMemoryHistory } from "history";
 import { ContainerExplorer } from "../ContainerExplorer/ContainerExplorer";
 import { Loading } from "../Misc/Loading";
+import * as Utils from "../Misc/Utils";
 
 interface IRouterProp {
     sasUrl?: string;
@@ -64,56 +65,6 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
         this.setState({ containers: list });
     }
 
-    private static getPathFromSearch(props: RouteComponentProps): { containerName: string, dirPath: string } {
-        const slash: string = "%2F";
-        const slashReg: RegExp = /%2F/g;
-        let containerName: string = null;
-        let dirPath: string = null;
-        // ?container=ero&path=Ariel/pro
-        const search = decodeURI(props.location.search);
-        if (search.length < 2) {
-            return {
-                containerName: null,
-                dirPath: null
-            };
-        }
-        try {
-            // remove ? then split
-            let a = search.substring(1).split("&");
-            if (a.length === 1 && a[0].split("=").length===1) {
-                const r = new RegExp("/*([^/]+)/*(.*)");
-                const match = a[0].match(r);
-                [, containerName, dirPath] = match;
-            }
-            else {
-                for (const prop of a) {
-                    let b = prop.split("=");
-                    const key = b[0];
-                    let value = b[1];
-                    if (key === "container") {
-                        containerName = value;
-                    }
-                    else if (key === "path" || key == "dir") {
-                        value = value.replace(/\//g, slash);
-                        value = value.replace(slashReg, "/");
-                        if (!value.endsWith("/")) {
-                            value += "/";
-                        }
-                        dirPath = value;
-                    }
-                }
-            }
-        } catch (e) {
-            console.error(`Invalid URL query param: ${search}`);
-            console.error(e);
-        }
-
-        return {
-            containerName: containerName,
-            dirPath: dirPath
-        };
-    }
-
     // the returned prefix should begin with a slash, and has no trailing slashes
     private formatPrefix(prefix?: string): string {
         if (!prefix || prefix === "") {
@@ -148,14 +99,14 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
                             (props: RouteComponentProps) =>
                                 <ContainerExplorer
                                     storage={this.state.storage} containers={this.state.containers}
-                                    isSearch={true} path={MainRouter.getPathFromSearch(props)} {...props} />} />
+                                    isSearch={true} path={Utils.getPathFromSearch(props.location.search)} {...props} />} />
                     <Route
                         path="*/*.html"
                         component={
                             (props: RouteComponentProps) =>
                                 <ContainerExplorer
                                     storage={this.state.storage} containers={this.state.containers}
-                                    isSearch={true} path={MainRouter.getPathFromSearch(props)} {...props} />} />
+                                    isSearch={true} path={Utils.getPathFromSearch(props.location.search)} {...props} />} />
                     {this.props.useMatch
                         ? <Route
                               path={`${this.state.prefix}/:containerName/:dirPath*`}

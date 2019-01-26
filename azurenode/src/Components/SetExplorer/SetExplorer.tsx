@@ -1,28 +1,27 @@
 ﻿import * as React from "react";
-import * as AzureExplorer from "../../azureExplorer";
 import { Loading } from "../Misc/Loading";
-import { ListView, DisplaySchema } from "../ListView/ListView";
-import { ImageView } from "../ImageView/ImageView";
+import { ListView, DisplaySchema } from "./ListView";
+import { ImageView } from "./ImageView";
 import {
-    Storage,
     Container,
-    Blob,
     Directory,
     ItemList,
-    IItem,
-    ISet,
-    ItemType,
-    delimiter
+    ISet
 } from "../../azureExplorer";
 
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
-import 'react-tabs/style/react-tabs.css';
+import "react-tabs/style/react-tabs.css";
 
 export interface ISetExplorerProps {
     pathGen: (d: Directory) => string;
-    container: AzureExplorer.Container; // null: storage view
-    set: AzureExplorer.ISet; // ^
-    itemList: AzureExplorer.ItemList; // null: storage view / item data fetching
+    container: Container; // null: storage view
+    set: ISet; // ^
+    itemList: ItemList; // null: storage view / item data fetching
+}
+
+interface ISetExplorerState {
+    init: boolean;
+    tabIndex: number;
 }
 
 const schema: DisplaySchema[] = [
@@ -31,7 +30,11 @@ const schema: DisplaySchema[] = [
 ];
 const styles: any = require("./SetExplorer.module.less");
 
-export class SetExplorer extends React.Component<ISetExplorerProps, {}> {
+export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorerState> {
+    constructor(props: ISetExplorerProps) {
+        super(props);
+        this.state = { tabIndex: 0, init: true };
+    }
 
     render(): JSX.Element {
         if (!this.props.itemList) {
@@ -42,8 +45,16 @@ export class SetExplorer extends React.Component<ISetExplorerProps, {}> {
         const hasImage: boolean = imgBlobs.length > 0;
         const mostImage: boolean = imgBlobs.length >
             (this.props.itemList.blobs.length + this.props.itemList.directories.length) * 0.7;
-        return (
-            <Tabs defaultIndex={mostImage?1:0} className={styles.tabContainer} selectedTabPanelClassName={styles.tabContent}>
+        const idx = mostImage ? 1 : 0;
+        if (this.state.init && idx !== this.state.tabIndex) {
+            this.setState({ tabIndex: idx });
+        }
+        const elem = (
+            <Tabs
+                selectedIndex={this.state.tabIndex}
+                onSelect={tabIndex => this.setState({ tabIndex: tabIndex, init: false })}
+                className={styles.tabContainer}
+                selectedTabPanelClassName={styles.tabContent}>
                 <TabList>
                     <Tab>List</Tab>
                     <Tab disabled={!hasImage}>{`Image: ${imgBlobs.length}`}</Tab>
@@ -51,20 +62,25 @@ export class SetExplorer extends React.Component<ISetExplorerProps, {}> {
                 <div className={styles.tabContent}>
                     <TabPanel>
                         <ListView
-                            className={`ag-theme-material ${styles.tabContent}`}
+                            className={`${styles.tabContent}`}
                             dirUrl={this.props.pathGen}
                             itemList={this.props.itemList}
                             schemas={schema}/>
                     </TabPanel>
                     <TabPanel>
-                        <ImageView className={styles.tabContent}
-                                   imgs={this.props.itemList.blobs
-                            .filter((b) => b.properties && b.properties.contentType.includes("image"))
-                            .map((b) => b.url)}/>
+                        <ImageView
+                            className={styles.tabContent}
+                            imgs={this.props.itemList.blobs
+                                .filter((b) => b.properties && b.properties.contentType.includes("image"))
+                                .map((b) => b.url)}/>
                     </TabPanel>
                 </div>
-            </Tabs>
-        );
+            </Tabs>);
+        return elem;
+    }
+
+    componentDidUpdate(prevProps: ISetExplorerProps, prevState: { tabIndex: number }, snapshot?): void {
+
     }
 }
 

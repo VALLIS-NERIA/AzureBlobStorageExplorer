@@ -4,6 +4,7 @@ import { Blob, Directory, ItemList } from "../../azureExplorer";
 import * as AgGrid from "ag-grid-react";
 import { ColDef, ICellRendererParams, ICellRendererComp } from "ag-grid-community";
 import "ag-grid-community/dist/styles/ag-grid.css";
+import "ag-grid-community/dist/styles/ag-theme-balham.css";
 
 export type DisplaySchema = IDisplaySchema | string;
 
@@ -60,14 +61,14 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
         }
 
         for (const dir of newProp.itemList.directories) {
-            data.push({ type: "Dir", name: dir.path, link: newProp.dirUrl(dir) });
+            data.push({ type: "Dir", name: dir.name, link: newProp.dirUrl(dir) });
         }
 
         for (const blob of newProp.itemList.blobs) {
             const entry: { [key: string]: Object } = {};
             entry.type = "Blob";
             // TODO: show blob name instead of path
-            entry.name = blob.path;
+            entry.name = blob.name;
             entry.link = blob.url;
             if (blob.properties) {
                 for (const prop of newProp.schemas) {
@@ -91,21 +92,18 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
     }
 
     render() {
+        const defs = this.state.columnDefs.map((d) => d.headerName);
         return (
-            <div className={this.props.className}>
+            <div className={`ag-theme-balham ${this.props.className}`}>
                 <AgGrid.AgGridReact
+                    domLayout="autoHeight"
                     enableSorting={true}
                     enableFilter={true}
                     enableColResize={true}
                     onFirstDataRendered={(params) => {
-                        window.addEventListener("resize",
-                            function() {
-                                setTimeout(function() {
-                                    params.api.sizeColumnsToFit();
-                                });
-                            });
-                        params.columnApi.autoSizeColumns(["type", "name"]);
-                        params.api.sizeColumnsToFit();
+                        params.columnApi.autoSizeColumns(defs);
+                        
+                        params.columnApi.sizeColumnsToFit(params.api.getPreferredWidth());
                     }}
                     columnDefs={this.state.columnDefs}
                     rowData={this.state.data}>

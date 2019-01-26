@@ -21,6 +21,7 @@ export enum ItemType {
 export interface IItem {
     type: ItemType;
     path: string;
+    name: string;
 
     asBlob?: Blob;
 
@@ -175,7 +176,7 @@ export class Container implements ISet {
 export class Blob implements IItem {
     type = ItemType.Blob;
     asBlob = this;
-
+    name: string;
     path: string;
     url: string;
     properties: BlobProperties;
@@ -190,6 +191,7 @@ export class Blob implements IItem {
         this.container = container;
         this.blobItem = blobItem;
         this.path = blobItem.name;
+        this.name = this.path.split(delimiter).pop();
         this.blobURL = this.container.getBlobURL(this);
         this.url = this.blobURL.url;
         this.properties = null;
@@ -208,6 +210,7 @@ export class Blob implements IItem {
 export class Directory implements IItem, ISet {
     type = ItemType.Directory;
     asDirectory = this;
+    name: string;
 
     /* This contains a delimiter at the end. */
     path: string;
@@ -216,6 +219,8 @@ export class Directory implements IItem, ISet {
 
     constructor(container: Container, name: string, parent?: Directory) {
         this.container = container;
+        const a = name.split(delimiter);
+        this.name = a[a.length - 2];
         if (parent) {
             this.path = parent.path + name;
         }

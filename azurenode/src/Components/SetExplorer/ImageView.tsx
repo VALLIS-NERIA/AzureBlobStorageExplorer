@@ -21,7 +21,7 @@ export class ImageView extends React.Component<IImageViewProps, {}> {
 
     componentDidMount() {
         this.$el = $(this.el);
-        this.$el.justifiedGallery();
+        this.$el.justifiedGallery(/*{ waitThumbnailsLoad : false }*/);
         this.$el.lightGallery(
             {
                 selector: ".imageItem",
