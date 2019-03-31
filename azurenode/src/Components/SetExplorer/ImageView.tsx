@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-
+import { Blob } from "../../azureExplorer";
 import * as $ from "jquery";
 import "lightgallery";
 import "lightgallery/dist/css/lightgallery.css";
@@ -10,8 +10,9 @@ import "../../Lib/justifiedGallery/jquery.justifiedGallery.min.js";
 import "../../Lib/justifiedGallery/justifiedGallery.min.css";
 
 export interface IImageViewProps {
-    className? : string;
-    imgs?: string[];
+    className?: string;
+    blobs?: Blob[];
+    loadFinished: boolean;
 }
 
 export class ImageView extends React.Component<IImageViewProps, {}> {
@@ -21,7 +22,7 @@ export class ImageView extends React.Component<IImageViewProps, {}> {
 
     componentDidMount() {
         this.$el = $(this.el);
-        this.$el.justifiedGallery(/*{ waitThumbnailsLoad : false }*/);
+        this.$el.justifiedGallery({ waitThumbnailsLoad : false });
         this.$el.lightGallery(
             {
                 selector: ".imageItem",
@@ -37,13 +38,15 @@ export class ImageView extends React.Component<IImageViewProps, {}> {
 
     render() {
         const list: JSX.Element[] = [];
-        if (this.props.imgs) {
-            for (const img of this.props.imgs) {
-                list.push(<a className="imageItem" key={img} href={img}><img src={img} /> </a>);
+        if (this.props.blobs) {
+            for (const blob of this.props.blobs) {
+                list.push(<a className="imageItem" key={blob.url} href={blob.url}>
+                    <img src={blob.url} alt={blob.name} height={200} width={200}/>
+                          </a>);
             }
         }
         return <div className={this.props.className} ref={el => this.el = el}>
-            {list}
-        </div>;
+                   {list}
+               </div>;
     }
 }

@@ -40,8 +40,8 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
         if (!this.props.itemList) {
             return <Loading/>;
         }
-        const imgBlobs = this.props.itemList.blobs
-            .filter((b) => b.properties && b.properties.contentType.includes("image"));
+        const imgBlobs = this.props.itemList.blobs;
+        //.filter((b) => b.properties && b.properties.contentType.includes("image"));
         const hasImage: boolean = imgBlobs.length > 0;
         const mostImage: boolean = imgBlobs.length >
             (this.props.itemList.blobs.length + this.props.itemList.directories.length) * 0.7;
@@ -69,18 +69,14 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                     </TabPanel>
                     <TabPanel>
                         <ImageView
+                            loadFinished={this.props.itemList.metadataLoaded}
                             className={styles.tabContent}
-                            imgs={this.props.itemList.blobs
-                                .filter((b) => b.properties && b.properties.contentType.includes("image"))
-                                .map((b) => b.url)}/>
+                            blobs={this.props.itemList.blobs
+                                /*.filter((b) => b.properties && b.properties.contentType.includes("image"))*/}/>
                     </TabPanel>
                 </div>
             </Tabs>);
         return elem;
-    }
-
-    componentDidUpdate(prevProps: ISetExplorerProps, prevState: { tabIndex: number }, snapshot?): void {
-
     }
 }
 

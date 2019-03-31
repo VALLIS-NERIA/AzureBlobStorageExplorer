@@ -40,14 +40,15 @@ export class ItemList implements Iterable<IItem> {
     }
 
     directories: Array<Directory>;
-
     blobs: Array<Blob>;
+    metadataLoaded: boolean;
 
     private blobTasks: Array<Promise<void>> = [];
 
     constructor() {
         this.directories = [];
         this.blobs = [];
+        this.metadataLoaded = false;
     }
 
     add(item: IItem) {
@@ -64,7 +65,7 @@ export class ItemList implements Iterable<IItem> {
     }
 
     waitBlobMetadata(): Promise<void> {
-        return Promise.all(this.blobTasks).then(() => {});
+        return Promise.all(this.blobTasks).then(() => { this.metadataLoaded = true; });
     }
 
     private *enumerate(): IterableIterator<IItem> {
@@ -124,7 +125,7 @@ export class Container implements ISet {
     }
 
     public async findPrefixDir(prefix: string): Promise<Directory> {
-        if(!prefix) return null;
+        if (!prefix) return null;
 
         while (prefix.endsWith(delimiter)) {
             prefix = prefix.substring(0, prefix.length - 1);
@@ -180,7 +181,6 @@ export class Blob implements IItem {
     path: string;
     url: string;
     properties: BlobProperties;
-
     getting: Promise<void>;
 
     private container: Container;
@@ -199,11 +199,12 @@ export class Blob implements IItem {
     }
 
     private getMetadata(): Promise<void> {
-        return this.blobURL.getProperties(Aborter.timeout(5000))
+        const getProp = this.blobURL.getProperties(Aborter.timeout(5000))
             .then(
                 (response) => {
                     this.properties = response;
                 });
+        return getProp;
     }
 }
 
