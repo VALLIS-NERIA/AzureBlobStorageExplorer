@@ -76,7 +76,12 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                     </TabPanel>
                 </div>
             </Tabs>);
-        return elem;
+        const loc = this.props.set.getFullLocation();
+        return <div>
+            
+            {`<script> window.addEventListener('DOMContentLoaded', () => {makeGallery("${loc.sas}","${loc.container}","${loc.path}")} )</script>`.}
+            {elem}
+            </div>;
     }
 }
 

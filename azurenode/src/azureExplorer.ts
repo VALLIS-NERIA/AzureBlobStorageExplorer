@@ -32,6 +32,8 @@ export interface ISet {
     getItemsList(prefix?: string): Promise<ItemList>;
 
     enumerateItems(prefix?: string): AsyncIterableIterator<IItem>;
+
+    getFullLocation(): {sas:string,container:string,path:string};
 }
 
 export class ItemList implements Iterable<IItem> {
@@ -80,8 +82,8 @@ export class ItemList implements Iterable<IItem> {
 }
 
 export class Storage {
-    private url: string;
-    private serviceURL: ServiceURL;
+    url: string;
+    serviceURL: ServiceURL;
     private anonCred = new AnonymousCredential();
     private pipeline = StorageURL.newPipeline(this.anonCred);
 
@@ -104,7 +106,7 @@ export class Storage {
 
             marker = listContainersResponse.marker;
             for (const container of listContainersResponse.containerItems) {
-                yield new Container(this.serviceURL, container);
+                yield new Container(this, container);
             }
         } while (marker);
     }
@@ -123,13 +125,13 @@ export class Storage {
 export class Container implements ISet {
     name: string;
 
-    private serviceURL: ServiceURL;
+    storage:Storage;
     private containerURL: ContainerURL;
     private containerItem: Models.ContainerItem;
 
-    constructor(serviceURL: ServiceURL, containerItem: Models.ContainerItem) {
-        this.serviceURL = serviceURL;
-        this.containerURL = ContainerURL.fromServiceURL(serviceURL, containerItem.name);
+    constructor(storage: Storage, containerItem: Models.ContainerItem) {
+        this.storage = storage;
+        this.containerURL = ContainerURL.fromServiceURL(storage.serviceURL, containerItem.name);
         this.containerItem = containerItem;
         this.name = containerItem.name;
     }
@@ -182,6 +184,14 @@ export class Container implements ISet {
     public getBlobURL(blob: Blob): BlobURL {
         return BlobURL.fromContainerURL(this.containerURL, blob.path);
     }
+
+    public getFullLocation() {
+        return {
+            sas: this.storage.url,
+            container: this.name,
+            path: ""
+        };
+    }
 }
 
 export class Blob implements IItem {
@@ -230,6 +240,7 @@ export class Directory implements IItem, ISet {
 
     constructor(container: Container, name: string, parent?: Directory) {
         this.container = container;
+        
         const a = name.split(delimiter);
         this.name = a[a.length - 2];
         if (parent) {
@@ -246,5 +257,13 @@ export class Directory implements IItem, ISet {
 
     public enumerateItems(prefix?: string): AsyncIterableIterator<IItem> {
         return this.container.enumerateItems(this.path);
+    }
+
+    public getFullLocation() {
+        return {
+            sas: this.container.storage.url,
+            container: this.container.name,
+            path: this.path
+        };
     }
 }

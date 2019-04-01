@@ -20,7 +20,7 @@ interface IHeaderProps {
 export class Header extends React.Component<IHeaderProps, {}> {
     render(): React.ReactNode {
         if (!this.props.container) {
-            return 
+            return null;
         }
         return this.getElement(this.extractRoutes());
     }
