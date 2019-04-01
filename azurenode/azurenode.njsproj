@@ -50,6 +50,7 @@
     <Content Include="src\Components\Misc\SmallComponents.module.less">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="src\Components\SetExplorer\ImageView.module.less" />
     <Content Include="src\Components\SetExplorer\SetExplorer.module.less" />
     <Content Include="src\Lib\justifiedGallery\justifiedGallery.min.css" />
     <Content Include="tsconfig.json" />
@@ -57,6 +58,7 @@
     <TypeScriptCompile Include="src\azureExplorer.ts" />
     <TypeScriptCompile Include="src\azuretest.ts" />
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
+    <TypeScriptCompile Include="src\Components\GalleryView\GalleryView.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Header.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Utils.ts" />
     <TypeScriptCompile Include="src\Components\SetExplorer\SetExplorer.tsx" />
@@ -83,6 +85,7 @@
     <Folder Include="src\" />
     <Folder Include="src\Components\" />
     <Folder Include="src\Components\ContainerExplorer\" />
+    <Folder Include="src\Components\GalleryView\" />
     <Folder Include="src\Components\MainRouter\" />
     <Folder Include="src\Components\Misc\" />
     <Folder Include="src\Components\SetExplorer\" />

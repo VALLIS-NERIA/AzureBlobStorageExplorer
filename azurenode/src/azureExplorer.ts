@@ -108,6 +108,16 @@ export class Storage {
             }
         } while (marker);
     }
+
+    public async findContainer(name: string): Promise<Container> {
+        for await (const c of this.enumerateContainers()) {
+            if (c.name === name) {
+                return c;
+            }
+        }
+
+        return null;
+    }
 }
 
 export class Container implements ISet {

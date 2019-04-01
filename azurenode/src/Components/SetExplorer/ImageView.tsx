@@ -8,6 +8,15 @@ import "lightgallery/dist/js/lightgallery-all";
 import "lg-thumbnail";
 import "../../Lib/justifiedGallery/jquery.justifiedGallery.min.js";
 import "../../Lib/justifiedGallery/justifiedGallery.min.css";
+import * as Masonry from "masonry-layout";
+const jQueryBridget = require("jquery-bridget");
+import * as ImagesLoaded from "imagesloaded";
+
+
+jQueryBridget("masonry", Masonry, $);
+ImagesLoaded.makeJQueryPlugin($);
+
+const styles: any = require("./ImageView.module.less");
 
 export interface IImageViewProps {
     className?: string;
@@ -22,10 +31,15 @@ export class ImageView extends React.Component<IImageViewProps, {}> {
 
     componentDidMount() {
         this.$el = $(this.el);
-        this.$el.justifiedGallery({ waitThumbnailsLoad : false });
+        const grid = this.$el.masonry(
+            {
+                itemSelector: "." + styles.imageItem,
+            });
+        grid.imagesLoaded().progress(() => grid.masonry());
+        //this.$el.justifiedGallery({ waitThumbnailsLoad : true });
         this.$el.lightGallery(
             {
-                selector: ".imageItem",
+                selector: "." + styles.imageItem,
                 thumbnail: true,
                 animateThumb: false,
                 showThumbByDefault: false
@@ -40,13 +54,20 @@ export class ImageView extends React.Component<IImageViewProps, {}> {
         const list: JSX.Element[] = [];
         if (this.props.blobs) {
             for (const blob of this.props.blobs) {
-                list.push(<a className="imageItem" key={blob.url} href={blob.url}>
-                    <img src={blob.url} alt={blob.name} height={200} width={200}/>
-                          </a>);
+                list.push(
+                    <a className={styles.imageItem + " " + styles.fullWidth} key={blob.url} href={blob.url}>
+                        <img className={styles.innerImage} src={blob.url} alt={blob.name}/>
+                    </a>);
             }
         }
-        return <div className={this.props.className} ref={el => this.el = el}>
-                   {list}
-               </div>;
+        return (
+            <div className={this.props.className} ref={el => this.el = el}>
+                <div className="ms-Grid">
+                    <div className="ms-Grid-row">
+                        <div className={styles.fullWidth}></div>
+                        {list}
+                    </div>
+                </div>
+            </div>);
     }
 }
