@@ -1,7 +1,7 @@
 ﻿import * as React from "react";
 import { Loading } from "../Misc/Loading";
 import { ListView, DisplaySchema } from "./ListView";
-import { ImageView } from "./ImageView";
+import { MasonryImageView } from "./MasonryImageView";
 import {
     Container,
     Directory,
@@ -11,6 +11,7 @@ import {
 
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
+import * as Utils from "../Misc/Utils";
 
 export interface ISetExplorerProps {
     pathGen: (d: Directory) => string;
@@ -40,7 +41,8 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
         if (!this.props.itemList) {
             return <Loading/>;
         }
-        const imgBlobs = this.props.itemList.blobs;
+        const imgBlobs = this.props.itemList.blobs
+            .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")));
         //.filter((b) => b.properties && b.properties.contentType.includes("image"));
         const hasImage: boolean = imgBlobs.length > 0;
         const mostImage: boolean = imgBlobs.length >
@@ -68,18 +70,15 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                             schemas={schema}/>
                     </TabPanel>
                     <TabPanel>
-                        <ImageView
-                            loadFinished={this.props.itemList.metadataLoaded}
+                        <MasonryImageView
+                            //loadFinished={this.props.itemList.metadataLoaded}
                             className={styles.tabContent}
-                            blobs={this.props.itemList.blobs
-                                /*.filter((b) => b.properties && b.properties.contentType.includes("image"))*/}/>
+                            blobs={imgBlobs}/>
                     </TabPanel>
                 </div>
             </Tabs>);
         const loc = this.props.set.getFullLocation();
         return <div>
-            
-            {`<script> window.addEventListener('DOMContentLoaded', () => {makeGallery("${loc.sas}","${loc.container}","${loc.path}")} )</script>`.}
             {elem}
             </div>;
     }

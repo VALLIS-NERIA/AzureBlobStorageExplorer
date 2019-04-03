@@ -30,8 +30,23 @@ module.exports = {
                         loader: "css-loader",
                         options: {
                             modules: true,
-                            importLoaders: 2,
+                            importLoaders: 0,
                             localIdentName: "azure-[name]-[local]"
+                        }
+                    },
+                    "less-loader"
+                ]
+            },
+            {
+                test: /^((?!\.module).)*less$/,
+                use: [
+                    "style-loader",
+                    {
+                        loader: "css-loader",
+                        options: {
+                            modules: true,
+                            importLoaders: 0,
+                            localIdentName: "[local]"
                         }
                     },
                     "less-loader"

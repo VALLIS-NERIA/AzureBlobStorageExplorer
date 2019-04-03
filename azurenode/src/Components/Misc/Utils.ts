@@ -80,3 +80,32 @@ export function getPathFromSearch(searchStr: string): { containerName: string, d
         dirPath: dirPath
     };
 }
+
+export function getColWidthCss(column: string): string {
+    let sm: number, md: number, lg: number;
+    column = column.replace(/"|'/g, "");
+    if (column === "") {
+        return null;
+    }
+    const cols = column.split(" ");
+    switch (cols.length) {
+        case 1:
+            sm = md = lg = Number.parseInt(cols[0]);
+            break;
+        case 2:
+            sm = Number.parseInt(cols[0]);
+            md = lg = Number.parseInt(cols[1]);
+            break;
+        case 3:
+        default:
+            sm = Number.parseInt(cols[0]);
+            md = Number.parseInt(cols[1]);
+            lg = Number.parseInt(cols[2]);
+            break;
+    }
+    return `ms-Grid-col ms-sm${12 / sm} ms-md${12 / md} ms-lg${12 / lg}`;
+}
+
+export function isImageExt(filename: string): boolean {
+    return filename.match(/(png|jpeg|jpg|gif)$/) ? true : false;
+}

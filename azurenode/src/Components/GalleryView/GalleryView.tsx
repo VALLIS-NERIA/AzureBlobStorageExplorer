@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Loading } from "../Misc/Loading";
-import { ImageView } from "../SetExplorer/ImageView";
+import { MasonryImageView } from "../SetExplorer/MasonryImageView";
+import { ButtonSlideImageView } from "../SetExplorer/ButtonSlideImageView";
 import {
     Storage,
     Container,
@@ -8,11 +9,14 @@ import {
     ItemList,
     ISet
 } from "../../azureExplorer";
+import * as Utils from "../Misc/Utils";
 
 export interface IGalleryViewProps {
     sasUrl: string;
     container: string;
     dir: string;
+    column?: string;
+    autoMasonry?: boolean;
 }
 
 export interface IGalleryViewState {
@@ -21,6 +25,8 @@ export interface IGalleryViewState {
     directory: Directory;
     items: ItemList;
 }
+
+const styles = require("./GalleryView.module.less");
 
 export default class GalleryView extends React.Component<IGalleryViewProps, IGalleryViewState> {
     constructor(props: IGalleryViewProps) {
@@ -77,12 +83,25 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             return <Loading message="Loading image list"/>;
         }
         const imgBlobs = this.state.items.blobs
-            .filter((b) => b.name.match(/(png|jpeg|gif|)$/));
+            .filter((b) => Utils.isImageExt(b.name));
         if (imgBlobs.length === 0) {
             return <Loading message="No image to show."/>;
         }
 
-        return <div style={{width:"100%",height:"100%"}}><ImageView blobs={imgBlobs} loadFinished={true}/></div>;
+        let imgClass: string = null;
+        if (this.props.column) {
+            imgClass = Utils.getColWidthCss(this.props.column);
+        }
+
+        return (
+            <React.Fragment>
+                <ButtonSlideImageView className={styles.slideButton} blobs={imgBlobs}/>
+                <MasonryImageView
+                    className={styles.imageGridContainer}
+                    blobs={imgBlobs}
+                    itemClass={imgClass}
+                    collapse={this.props.autoMasonry ? true : false}/>
+            </React.Fragment>);
     }
 
 }
