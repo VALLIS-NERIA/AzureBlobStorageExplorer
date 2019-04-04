@@ -66,8 +66,24 @@ export class ItemList implements Iterable<IItem> {
         }
     }
 
+    addMany(another: ItemList): void {
+        this.blobs = this.blobs.concat(another.blobs);
+        this.directories = this.directories.concat(another.directories);
+        this.blobTasks = this.blobTasks.concat(another.blobTasks);
+        this.metadataLoaded = this.metadataLoaded && another.metadataLoaded;
+    }
+
     waitBlobMetadata(): Promise<void> {
         return Promise.all(this.blobTasks).then(() => { this.metadataLoaded = true; });
+    }
+
+    concat(another: ItemList): ItemList {
+        const ret = new ItemList();
+        ret.blobs = this.blobs.concat(another.blobs);
+        ret.directories = this.directories.concat(another.directories);
+        ret.blobTasks = this.blobTasks.concat(another.blobTasks);
+        ret.metadataLoaded = this.metadataLoaded && another.metadataLoaded;
+        return ret;
     }
 
     private *enumerate(): IterableIterator<IItem> {
@@ -219,7 +235,7 @@ export class Blob implements IItem {
     }
 
     private getMetadata(): Promise<void> {
-        const getProp = this.blobURL.getProperties(Aborter.timeout(5000))
+        const getProp = this.blobURL.getProperties(Aborter.timeout(60000))
             .then(
                 (response) => {
                     this.properties = response;

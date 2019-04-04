@@ -22,7 +22,7 @@ export interface IGalleryViewProps {
 export interface IGalleryViewState {
     storage: Storage;
     container: Container;
-    directory: Directory;
+    directories: Directory[];
     items: ItemList;
 }
 
@@ -38,45 +38,56 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
     private async init(props: IGalleryViewProps): Promise<void> {
         let storage: Storage;
         let container: Container;
-        let dir: Directory;
+        let dirs: Directory[];
         try {
             storage = new Storage(props.sasUrl);
         } catch (e) {
-            storage = null;
+            this.setState({ storage: null, container: null, directories: null, items: null });
+            return;
         }
-        container = storage ? await storage.findContainer(props.container) : null;
-        dir = container ? await container.findPrefixDir(props.dir) : null;
-        if (dir) {
-            //this.setState(
-            //    { storage: storage, container: container, directory: dir },
-            //    () => {
-            //        this.state.directory.getItemsList()
-            //            .then(
-            //                itemList =>
-            //                itemList.waitBlobMetadata()
-            //                .then(
-            //                    () => this.setState({ items: itemList })
-            //                )
-            //            );
-            //    });
+        container = await storage.findContainer(props.container);
+        if (!container) {
+            this.setState({ storage: null, container: null, directories: null, items: null });
+            return;
+        }
 
-            this.setState(
-                { storage: storage, container: container, directory: dir },
-                () => {
-                    this.state.directory.getItemsList()
-                        .then(itemList => this.setState({ items: itemList }));
-                });
+        const paths = props.dir.replace(/"|'/g, "").split(" ");
+        dirs = [];
+
+
+        const promises: Promise<ItemList>[] = [];
+        for (const path of paths) {
+            const dir = await container.findPrefixDir(decodeURI(path));
+            if (dir) {
+                dirs.push(dir);
+                promises.push(dir.getItemsList());
+            }
         }
-        else {
-            this.setState({ storage: null, container: null, directory: null, items: null });
+
+        if (!dirs.length) {
+            this.setState({ storage: null, container: null, directories: null, items: null });
+            return;
         }
+
+        this.setState(
+            { storage: storage, container: container, directories: dirs },
+            () => {
+                Promise.all(promises).then(
+                    lists => {
+                        const items = new ItemList();
+                        for (const list of lists) {
+                            items.addMany(list);
+                        }
+                        this.setState({ items: items });
+                    });
+            });
     }
 
     public render() {
         if (!this.state) {
             return <Loading message="Initializing"/>;
         }
-        if (!this.state.directory) {
+        if (!this.state.directories) {
             return <Loading message="Invalid SAS/Container name/Directory path."/>;
         }
         if (!this.state.items) {
