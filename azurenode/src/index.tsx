@@ -2,7 +2,6 @@ import * as React from "react";
 import { MainRouter } from "./Components/MainRouter/MainRouter";
 import * as ReactDOM from "react-dom";
 import GalleryView from "./Components/GalleryView/GalleryView";
-import "office-ui-fabric-core/dist/css/fabric.css";
 
 let sas: string;
 try {

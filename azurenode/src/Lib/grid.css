@@ -1,0 +1,325 @@
+.ms-Grid {
+    box-sizing: border-box;
+    *zoom: 1;
+    padding: 0 8px;
+}
+
+.ms-Grid::before,
+.ms-Grid::after {
+    display: table;
+    content: '';
+    line-height: 0;
+}
+
+.ms-Grid::after {
+    clear: both;
+}
+
+.ms-Grid-row {
+    margin: 0 -8px;
+    box-sizing: border-box;
+    *zoom: 1;
+}
+
+.ms-Grid-row::before,
+.ms-Grid-row::after {
+    display: table;
+    content: '';
+    line-height: 0;
+}
+
+.ms-Grid-row::after {
+    clear: both;
+}
+
+.ms-Grid-col {
+    position: relative;
+    min-height: 1px;
+    padding-left: 8px;
+    padding-right: 8px;
+    box-sizing: border-box;
+}
+
+[dir='ltr'] .ms-Grid-col {
+    float: left;
+}
+
+[dir='rtl'] .ms-Grid-col {
+    float: right;
+}
+
+.ms-Grid-col .ms-Grid {
+    padding: 0;
+}
+
+
+
+.ms-sm12 {
+    width: 100%;
+}
+
+.ms-sm11 {
+    width: 91.66666666666666%;
+}
+
+.ms-sm10 {
+    width: 83.33333333333334%;
+}
+
+.ms-sm9 {
+    width: 75%;
+}
+
+.ms-sm8 {
+    width: 66.66666666666666%;
+}
+
+.ms-sm7 {
+    width: 58.333333333333336%;
+}
+
+.ms-sm6 {
+    width: 50%;
+}
+
+.ms-sm5 {
+    width: 41.66666666666667%;
+}
+
+.ms-sm4 {
+    width: 33.33333333333333%;
+}
+
+.ms-sm3 {
+    width: 25%;
+}
+
+.ms-sm2 {
+    width: 16.666666666666664%;
+}
+
+.ms-sm1 {
+    width: 8.333333333333332%;
+}
+
+/******* md *******/
+
+@media (min-width: 480px) {
+    .ms-md12 {
+        width: 100%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md11 {
+        width: 91.66666666666666%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md10 {
+        width: 83.33333333333334%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md9 {
+        width: 75%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md8 {
+        width: 66.66666666666666%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md7 {
+        width: 58.333333333333336%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md6 {
+        width: 50%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md5 {
+        width: 41.66666666666667%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md4 {
+        width: 33.33333333333333%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md3 {
+        width: 25%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md2 {
+        width: 16.666666666666664%;
+    }
+}
+
+@media (min-width: 480px) {
+    .ms-md1 {
+        width: 8.333333333333332%;
+    }
+}
+
+/******* lg *******/
+
+@media (min-width: 640px) {
+    .ms-lg12 {
+        width: 100%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg11 {
+        width: 91.66666666666666%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg10 {
+        width: 83.33333333333334%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg9 {
+        width: 75%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg8 {
+        width: 66.66666666666666%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg7 {
+        width: 58.333333333333336%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg6 {
+        width: 50%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg5 {
+        width: 41.66666666666667%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg4 {
+        width: 33.33333333333333%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg3 {
+        width: 25%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg2 {
+        width: 16.666666666666664%;
+    }
+}
+
+@media (min-width: 640px) {
+    .ms-lg1 {
+        width: 8.333333333333332%;
+    }
+}
+
+/******* xl *******/
+
+@media (min-width: 1024px) {
+    .ms-xl12 {
+        width: 100%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl11 {
+        width: 91.66666666666666%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl10 {
+        width: 83.33333333333334%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl9 {
+        width: 75%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl8 {
+        width: 66.66666666666666%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl7 {
+        width: 58.333333333333336%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl6 {
+        width: 50%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl5 {
+        width: 41.66666666666667%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl4 {
+        width: 33.33333333333333%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl3 {
+        width: 25%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl2 {
+        width: 16.666666666666664%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ms-xl1 {
+        width: 8.333333333333332%;
+    }
+}

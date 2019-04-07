@@ -53,6 +53,7 @@
     </Content>
     <Content Include="src\Components\SetExplorer\MasonryImageView.module.less" />
     <Content Include="src\Components\SetExplorer\SetExplorer.module.less" />
+    <Content Include="src\Lib\grid.css" />
     <Content Include="src\Lib\justifiedGallery\justifiedGallery.min.css" />
     <Content Include="tsconfig.json" />
     <Content Include="package.json" />
@@ -101,6 +102,7 @@
     <Compile Include="webpack-config-pro.js">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="webpack-config-wp.js" />
     <Compile Include="webpack-config.js">
       <SubType>Code</SubType>
     </Compile>

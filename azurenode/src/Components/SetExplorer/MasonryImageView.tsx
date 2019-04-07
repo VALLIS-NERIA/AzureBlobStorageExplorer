@@ -2,16 +2,16 @@
 import { Blob } from "../../azureExplorer";
 import * as $ from "jquery";
 import "lightgallery";
-import "lightgallery/dist/css/lightgallery.css";
-import "lightgallery/dist/css/lg-transitions.css";
-import "lightgallery/dist/js/lightgallery-all";
-import "lg-thumbnail";
+import "lightgallery/dist/css/lightgallery.min.css";
+import "lightgallery/dist/css/lg-transitions.min.css";
+//import "lightgallery/dist/js/lightgallery-all";
+//import "lg-thumbnail";
 //import "../../Lib/justifiedGallery/jquery.justifiedGallery.min.js";
 //import "../../Lib/justifiedGallery/justifiedGallery.min.css";
 import * as Masonry from "masonry-layout";
 const jQueryBridget = require("jquery-bridget");
 import * as ImagesLoaded from "imagesloaded";
-import "office-ui-fabric-core/dist/css/fabric.css";
+import "../../Lib/grid.css";
 import { PrimaryButton } from "office-ui-fabric-react";
 
 jQueryBridget("masonry", Masonry, $);
