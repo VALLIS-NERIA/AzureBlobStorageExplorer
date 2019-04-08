@@ -97,7 +97,7 @@ export class MasonryImageView extends React.Component<IMasonryImageViewProps, IM
             list.push(
                 <div className={styles.itemContainer + " " + width} key={blob.url}>
                     <a className={styles.imageItem} href={blob.url}>
-                        <img className={styles.innerImage} src={blob.url} alt={blob.name}/>
+                        <img className={styles.innerImage} src={blob.thumb} alt={blob.name}/>
                     </a>
                 </div>);
         }

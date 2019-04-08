@@ -37,12 +37,7 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
     constructor(props: IGalleryViewProps) {
         super(props);
         this.state = null;
-        if (props.useThumb) {
-            ImageBlob.factory = (blob: Blob) => blob.path.replace(`/${blob.container.name}/`, "thumbnails") + ".thumb.jpg";
-        }
-        else {
-            ImageBlob.factory = (blob: Blob) => blob.path;
-        }
+        console.log(ImageBlob.factory);
         this.init(props);
     }
 
@@ -60,6 +55,13 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
         if (!container) {
             this.setState({ storage: null, container: null, directories: null, items: null });
             return;
+        }
+
+        if (props.useThumb) {
+            ImageBlob.factory = (blob: Blob) => blob.url.replace(new RegExp(`(.+)/${container.name}/(.+?)\\?(.+)`),"$1/thumbnails/$2.thumb.jpg?$3");
+        }
+        else {
+            ImageBlob.factory = (blob: Blob) => blob.url;
         }
 
         const paths = props.dir.replace(/"|'/g, "").split(" ");
