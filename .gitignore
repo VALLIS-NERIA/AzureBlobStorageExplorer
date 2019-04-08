@@ -269,3 +269,4 @@ __pycache__/
 /.vscode
 /azurenode/src/**/*.js
 !/azurenode/src/Lib/**/*.js
+azurenode/package-lock.json

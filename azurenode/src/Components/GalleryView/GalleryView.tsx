@@ -38,7 +38,7 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
         super(props);
         this.state = null;
         if (props.useThumb) {
-            ImageBlob.factory = (blob: Blob) => blob.path.replace(`/${blob.container.name}/`, "thumb") + ".thumb.jpg";
+            ImageBlob.factory = (blob: Blob) => blob.path.replace(`/${blob.container.name}/`, "thumbnails") + ".thumb.jpg";
         }
         else {
             ImageBlob.factory = (blob: Blob) => blob.path;
