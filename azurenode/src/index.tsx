@@ -14,7 +14,7 @@ try {
 //ReactDOM.render(<GalleryView sasUrl={sas} container="ero" dir="test/Camoshirt-01of02_771" />, document.getElementById("root"));
 
 window["makeGallery"] =
-    (arg: { sas?: string, cont: string, dir: string, col?: string, rootName?: string, autoMasonry?: boolean }) => {
+    async function(arg: { sas?: string, cont: string, dir: string, col?: string, rootName?: string, autoMasonry?: boolean }): Promise<void> {
         ReactDOM.render(
             <GalleryView
                 sasUrl={arg.sas ? arg.sas : sas}

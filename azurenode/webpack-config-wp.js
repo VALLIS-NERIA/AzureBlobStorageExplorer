@@ -8,7 +8,9 @@ module.exports = dev;
 dev.externals = {
     jquery: 'jQuery',
     react: 'React',
-    "react-dom": 'ReactDOM'
+    "react-dom": 'ReactDOM',
+    "@azure/storage-blob": 'azblob'
+    //lightgallery: 'lg'
 };
 dev.output.filename = `wp-${dev.output.filename}`;
 
