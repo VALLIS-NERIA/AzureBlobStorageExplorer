@@ -1,7 +1,8 @@
 ﻿import * as React from "react";
 import { Loading } from "../Misc/Loading";
+import ImageBlob from"../GalleryView/ImageBlob";
 import { ListView, DisplaySchema } from "./ListView";
-import { MasonryImageView } from "./MasonryImageView";
+import { MasonryImageView } from "../GalleryView/MasonryImageView";
 import {
     Container,
     Directory,
@@ -42,7 +43,8 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
             return <Loading/>;
         }
         const imgBlobs = this.props.itemList.blobs
-            .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")));
+            .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")))
+            .map(b => new ImageBlob(b));
         //.filter((b) => b.properties && b.properties.contentType.includes("image"));
         const hasImage: boolean = imgBlobs.length > 0;
         const mostImage: boolean = imgBlobs.length >
@@ -73,7 +75,7 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                         <MasonryImageView
                             //loadFinished={this.props.itemList.metadataLoaded}
                             className={styles.tabContent}
-                            blobs={imgBlobs}/>
+                            imgs={imgBlobs}/>
                     </TabPanel>
                 </div>
             </Tabs>);

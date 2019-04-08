@@ -1,12 +1,14 @@
 import * as React from "react";
 import { Loading } from "../Misc/Loading";
-import { MasonryImageView } from "../SetExplorer/MasonryImageView";
-import { ButtonSlideImageView } from "../SetExplorer/ButtonSlideImageView";
+import { MasonryImageView } from "./MasonryImageView";
+import { ButtonSlideImageView } from "./ButtonSlideImageView";
+import ImageBlob from"./ImageBlob";
 import {
     Storage,
     Container,
     Directory,
     ItemList,
+    Blob,
     ISet
 } from "../../azureExplorer";
 import * as Utils from "../Misc/Utils";
@@ -17,6 +19,7 @@ export interface IGalleryViewProps {
     dir: string;
     column?: string;
     autoMasonry?: boolean;
+    useThumb?: boolean;
 }
 
 export interface IGalleryViewState {
@@ -28,10 +31,18 @@ export interface IGalleryViewState {
 
 const styles = require("./GalleryView.module.less");
 
+//ImageBlob.factory = (blob: Blob) => blob.path.replace(`/${blob.container.name}/`, "thumb") + ".thumb.jpg";
+
 export default class GalleryView extends React.Component<IGalleryViewProps, IGalleryViewState> {
     constructor(props: IGalleryViewProps) {
         super(props);
         this.state = null;
+        if (props.useThumb) {
+            ImageBlob.factory = (blob: Blob) => blob.path.replace(`/${blob.container.name}/`, "thumb") + ".thumb.jpg";
+        }
+        else {
+            ImageBlob.factory = (blob: Blob) => blob.path;
+        }
         this.init(props);
     }
 
@@ -94,7 +105,8 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             return <Loading message="Loading image list"/>;
         }
         const imgBlobs = this.state.items.blobs
-            .filter((b) => Utils.isImageExt(b.name));
+            .filter((b) => Utils.isImageExt(b.name)).map(b=>new ImageBlob(b));
+
         if (imgBlobs.length === 0) {
             return <Loading message="No image to show."/>;
         }
@@ -106,10 +118,10 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
 
         return (
             <React.Fragment>
-                <ButtonSlideImageView className={styles.slideButton} blobs={imgBlobs}/>
+                <ButtonSlideImageView className={styles.slideButton} imgs={imgBlobs}/>
                 <MasonryImageView
                     className={styles.imageGridContainer}
-                    blobs={imgBlobs}
+                    imgs={imgBlobs}
                     itemClass={imgClass}
                     collapse={this.props.autoMasonry ? true : false}/>
             </React.Fragment>);

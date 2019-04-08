@@ -45,13 +45,14 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="src\Components\GalleryView\GalleryView.module.less" />
+    <Content Include="src\Components\GalleryView\ImageBlob.ts" />
     <Content Include="src\Components\MainRouter\MainRouter.module.less">
       <SubType>Code</SubType>
     </Content>
     <Content Include="src\Components\Misc\SmallComponents.module.less">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="src\Components\SetExplorer\MasonryImageView.module.less" />
+    <Content Include="src\Components\GalleryView\MasonryImageView.module.less" />
     <Content Include="src\Components\SetExplorer\SetExplorer.module.less" />
     <Content Include="src\Lib\grid.css" />
     <Content Include="src\Lib\justifiedGallery\justifiedGallery.min.css" />
@@ -63,12 +64,12 @@
     <TypeScriptCompile Include="src\Components\GalleryView\GalleryView.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Header.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Utils.ts" />
-    <TypeScriptCompile Include="src\Components\SetExplorer\ButtonSlideImageView.tsx" />
+    <TypeScriptCompile Include="src\Components\GalleryView\ButtonSlideImageView.tsx" />
     <TypeScriptCompile Include="src\Components\SetExplorer\SetExplorer.tsx" />
     <TypeScriptCompile Include="src\Components\SetExplorer\ListView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\Components\SetExplorer\MasonryImageView.tsx">
+    <TypeScriptCompile Include="src\Components\GalleryView\MasonryImageView.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\Components\Misc\Loading.tsx">

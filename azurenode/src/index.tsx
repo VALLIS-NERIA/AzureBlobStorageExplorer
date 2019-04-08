@@ -14,13 +14,14 @@ try {
 //ReactDOM.render(<GalleryView sasUrl={sas} container="ero" dir="test/Camoshirt-01of02_771" />, document.getElementById("root"));
 
 window["makeGallery"] =
-    async function(arg: { sas?: string, cont: string, dir: string, col?: string, rootName?: string, autoMasonry?: boolean }): Promise<void> {
+    async function(arg: { sas?: string, cont: string, dir: string, col?: string, rootName?: string, autoMasonry?: boolean, useThumb?: boolean}): Promise<void> {
         ReactDOM.render(
             <GalleryView
                 sasUrl={arg.sas ? arg.sas : sas}
                 container={arg.cont}
                 dir={arg.dir}
                 column={arg.col ? arg.col : null}
-                autoMasonry={arg.autoMasonry}/>,
+                autoMasonry={arg.autoMasonry}
+                useThumb={arg.useThumb} />,
             document.getElementById(arg.rootName ? arg.rootName : "root"));
     }

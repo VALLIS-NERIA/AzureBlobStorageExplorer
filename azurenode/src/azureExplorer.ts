@@ -218,8 +218,8 @@ export class Blob implements IItem {
     url: string;
     properties: BlobProperties;
     getting: Promise<void>;
+    container: Container;
 
-    private container: Container;
     private blobURL: BlobURL;
     private blobItem: Models.BlobItem;
 

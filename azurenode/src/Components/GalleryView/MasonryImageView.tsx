@@ -1,18 +1,19 @@
 ﻿import * as React from "react";
+import ImageBlob from"./ImageBlob";
 import { Blob } from "../../azureExplorer";
 import * as $ from "jquery";
-import "lightgallery";
+import "lightgallery/dist/js/lightgallery";
 import "lightgallery/dist/css/lightgallery.min.css";
 import "lightgallery/dist/css/lg-transitions.min.css";
 //import "lightgallery/dist/js/lightgallery-all";
 //import "lg-thumbnail";
 //import "../../Lib/justifiedGallery/jquery.justifiedGallery.min.js";
 //import "../../Lib/justifiedGallery/justifiedGallery.min.css";
-import * as Masonry from "masonry-layout";
+import * as Masonry from "masonry-layout/masonry";
 const jQueryBridget = require("jquery-bridget");
-import * as ImagesLoaded from "imagesloaded";
+import * as ImagesLoaded from "imagesloaded/imagesloaded";
 import "../../Lib/grid.css";
-import { PrimaryButton } from "office-ui-fabric-react";
+import { PrimaryButton } from "office-ui-fabric-react/lib/index";
 
 jQueryBridget("masonry", Masonry, $);
 ImagesLoaded.makeJQueryPlugin($);
@@ -21,7 +22,7 @@ const styles: any = require("./MasonryImageView.module.less");
 
 export interface IMasonryImageViewProps {
     className?: string;
-    blobs?: Blob[];
+    imgs: ImageBlob[];
     itemClass?: string;
     buttonClass?: string;
     collapse?: boolean;
@@ -44,7 +45,7 @@ export class MasonryImageView extends React.Component<IMasonryImageViewProps, IM
         this.tryMasonry();
     }
 
-    componentDidUpdate(prevProps: {readonly [P in "className" | "blobs" | "itemClass" | "buttonClass" | "collapse"]:
+    componentDidUpdate(prevProps: {readonly [P in "className" | "imgs" | "itemClass" | "buttonClass" | "collapse"]:
         IMasonryImageViewProps[P]},
         prevState: {readonly [P in "collapsed"]: IMasonryImageViewState[P]},
         snapshot?): void {
@@ -56,7 +57,7 @@ export class MasonryImageView extends React.Component<IMasonryImageViewProps, IM
     }
 
     render() {
-        if (this.props.blobs) {
+        if (this.props.imgs) {
             if (this.state.collapsed) {
                 return (
                     <div className={this.props.className} ref={el => this.div = el} key="masonry">
@@ -92,7 +93,7 @@ export class MasonryImageView extends React.Component<IMasonryImageViewProps, IM
         const list: JSX.Element[] = [];
         const width = this.props.itemClass ? this.props.itemClass : "ms-Grid-col ms-sm12 ms-md6 ms-lg4 ms-xl3 ms-xxl2";
 
-        for (const blob of this.props.blobs) {
+        for (const blob of this.props.imgs) {
             list.push(
                 <div className={styles.itemContainer + " " + width} key={blob.url}>
                     <a className={styles.imageItem} href={blob.url}>
