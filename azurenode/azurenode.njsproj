@@ -78,6 +78,7 @@
     <TypeScriptCompile Include="src\Components\MainRouter\MainRouter.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\wp_gallery.tsx" />
     <TypeScriptCompile Include="src\index.tsx" />
     <TypeScriptCompile Include="src\sas.ts">
       <SubType>Code</SubType>

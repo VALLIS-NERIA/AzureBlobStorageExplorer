@@ -19,7 +19,7 @@ export interface IGalleryViewProps {
     dir: string;
     column?: string;
     autoMasonry?: boolean;
-    useThumb?: boolean;
+    thumbContainer?: string;
 }
 
 export interface IGalleryViewState {
@@ -37,7 +37,7 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
     constructor(props: IGalleryViewProps) {
         super(props);
         this.state = null;
-        console.log(ImageBlob.factory);
+        //console.log(ImageBlob.factory);
         this.init(props);
     }
 
@@ -57,8 +57,10 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             return;
         }
 
-        if (props.useThumb) {
-            ImageBlob.factory = (blob: Blob) => blob.url.replace(new RegExp(`(.+)/${container.name}/(.+?)\\?(.+)`),"$1/thumbnails/$2.thumb.jpg?$3");
+        if (props.thumbContainer != null) {
+            ImageBlob.factory = (blob: Blob) => blob.url.replace(
+                new RegExp(`(.+)/${container.name}/(.+?)\\?(.+)`),
+                `$1/${props.thumbContainer}/$2.thumb.jpg?$3`);
         }
         else {
             ImageBlob.factory = (blob: Blob) => blob.url;
@@ -107,7 +109,7 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             return <Loading message="Loading image list"/>;
         }
         const imgBlobs = this.state.items.blobs
-            .filter((b) => Utils.isImageExt(b.name)).map(b=>new ImageBlob(b));
+            .filter((b) => Utils.isImageExt(b.name)).map(b => new ImageBlob(b));
 
         if (imgBlobs.length === 0) {
             return <Loading message="No image to show."/>;
