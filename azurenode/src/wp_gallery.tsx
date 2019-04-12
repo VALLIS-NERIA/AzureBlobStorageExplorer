@@ -19,6 +19,6 @@ window["makeGallery"] =
                 dir={arg.dir}
                 column={arg.col ? arg.col : null}
                 autoMasonry={arg.autoMasonry ? true : false}
-                thumbContainer={arg.thumb.length > 0 ? arg.thumb : null}/>,
+                thumbSize={arg.thumb.length > 0 ? arg.thumb : null}/>,
             document.getElementById(arg.rootName ? arg.rootName : "root"));
     }

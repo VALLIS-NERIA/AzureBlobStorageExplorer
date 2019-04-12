@@ -12,6 +12,7 @@ import {
     ISet
 } from "../../azureExplorer";
 import * as Utils from "../Misc/Utils";
+import { apiUrl, apiCode } from "../../sas.ts";
 
 export interface IGalleryViewProps {
     sasUrl: string;
@@ -19,7 +20,7 @@ export interface IGalleryViewProps {
     dir: string;
     column?: string;
     autoMasonry?: boolean;
-    thumbContainer?: string;
+    thumbSize?: string;
 }
 
 export interface IGalleryViewState {
@@ -57,10 +58,15 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             return;
         }
 
-        if (props.thumbContainer != null) {
-            ImageBlob.factory = (blob: Blob) => blob.url.replace(
-                new RegExp(`(.+)/${container.name}/(.+?)\\?(.+)`),
-                `$1/${props.thumbContainer}/$2.thumb.jpg?$3`);
+        if (props.thumbSize != null) {
+            //ImageBlob.factory = (blob: Blob) => blob.url.replace(
+            //    new RegExp(`(.+)/${container.name}/(.+?)\\?(.+)`),
+            //    `$1/thumb-${props.thumbSize}/$2.thumb.jpg?$3`);
+            if (props.thumbSize.startsWith("thumb-")) {
+                props.thumbSize = props.thumbSize.replace("thumb-", "");
+            }
+            ImageBlob.factory =
+                (blob: Blob) => `${apiUrl}/thumb?code=${apiCode}&name=${blob.path}&size=${props.thumbSize}`;
         }
         else {
             ImageBlob.factory = (blob: Blob) => blob.url;
