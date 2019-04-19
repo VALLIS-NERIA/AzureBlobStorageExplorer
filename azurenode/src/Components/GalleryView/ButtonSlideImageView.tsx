@@ -2,6 +2,7 @@
 import ImageBlob from"./ImageBlob";
 import * as $ from "jquery";
 import "lightgallery/dist/js/lightgallery";
+import "lg-thumbnail";
 import "lightgallery/dist/css/lightgallery.min.css";
 import "lightgallery/dist/css/lg-transitions.min.css";
 //import "lightgallery/dist/js/lightgallery-all";

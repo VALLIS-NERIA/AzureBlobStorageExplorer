@@ -53,7 +53,9 @@ export class MasonryImageView extends React.Component<IMasonryImageViewProps, IM
     }
 
     componentWillUnmount() {
-        this.$div.lightGallery("destroy");
+        if (this.$div) {
+            this.$div.lightGallery("destroy");
+        }
     }
 
     render() {

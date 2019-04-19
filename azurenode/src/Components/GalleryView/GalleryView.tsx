@@ -12,7 +12,7 @@ import {
     ISet
 } from "../../azureExplorer";
 import * as Utils from "../Misc/Utils";
-import { apiUrl, apiCode } from "../../sas.ts";
+import { apiUrl, apiCode } from "../../sas";
 
 export interface IGalleryViewProps {
     sasUrl: string;
