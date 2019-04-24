@@ -5,7 +5,8 @@
     Directory,
     ItemList,
     IItem,
-    ItemType
+    ItemType,
+    AzurePath
 } from "../../azureExplorer";
 
 import * as React from "react";
@@ -14,6 +15,7 @@ import { createBrowserHistory, createHashHistory, createMemoryHistory } from "hi
 import { ContainerExplorer } from "../ContainerExplorer/ContainerExplorer";
 import { Loading } from "../Misc/Loading";
 import * as Utils from "../Misc/Utils";
+import * as PathLink from "../Misc/PathLink";
 
 interface IRouterProp {
     sasUrl?: string;
@@ -86,7 +88,15 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
 
     render(): JSX.Element {
         if (!this.state.containers) {
-            return <Loading />;
+            return <Loading/>;
+        }
+
+        const matchUrlGenerator = (routeProps: RouteComponentProps<AzurePath>, path: AzurePath) => {
+            return Utils.getDirFullPathNotSearch(routeProps.location.pathname, path.containerName, path.dirPath);
+        }
+
+        const searchUrlGenerator = (routeProps: RouteComponentProps, path: AzurePath) => {
+            return Utils.getDirFullPathSearch(routeProps.location.pathname, path.containerName, path.dirPath);
         }
 
         return (
@@ -98,22 +108,32 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
                         component={
                             (props: RouteComponentProps) =>
                                 <ContainerExplorer
-                                    storage={this.state.storage} containers={this.state.containers}
-                                    isSearch={true} path={Utils.getPathFromSearch(props.location.search)} {...props} />} />
+                                    storage={this.state.storage}
+                                    containers={this.state.containers}
+                                    path={Utils.getPathFromSearch(props.location.search)}
+                                    pathGenerator={(p) => searchUrlGenerator(props, p)}
+                                    renderMode={PathLink.PathLinkRenderMode.RouterLink}/>}/>
                     <Route
                         path="*/*.html"
                         component={
                             (props: RouteComponentProps) =>
                                 <ContainerExplorer
-                                    storage={this.state.storage} containers={this.state.containers}
-                                    isSearch={true} path={Utils.getPathFromSearch(props.location.search)} {...props} />} />
+                                    storage={this.state.storage}
+                                    containers={this.state.containers}
+                                    path={Utils.getPathFromSearch(props.location.search)}
+                                    pathGenerator={(p) => searchUrlGenerator(props, p)}
+                                    renderMode={PathLink.PathLinkRenderMode.RouterLink}/>}/>
                     {this.props.useMatch
                         ? <Route
                               path={`${this.state.prefix}/:containerName/:dirPath*`}
-                              component={(props: RouteComponentProps<{ containerName: string; dirPath?: string }>) =>
-                                  <ContainerExplorer
-                                      storage={this.state.storage} containers={this.state.containers} isSearch={false}
-                                      path={props.match.params}{...props} />} />
+                              component={
+                            (props: RouteComponentProps<AzurePath>) =>
+                                <ContainerExplorer
+                                    storage={this.state.storage}
+                                    containers={this.state.containers}
+                                    path={props.match.params}
+                                    pathGenerator={(p) => matchUrlGenerator(props, p)}
+                                    renderMode={PathLink.PathLinkRenderMode.RouterLink}/>}/>
                         : null}
                 </Switch>
             </Router>

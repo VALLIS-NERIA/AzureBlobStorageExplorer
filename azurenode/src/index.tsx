@@ -1,6 +1,7 @@
 import * as React from "react";
 import { MainRouter } from "./Components/MainRouter/MainRouter";
 import * as ReactDOM from "react-dom";
+import {StateRouter} from "./Components/StateRouter/StateRouter";
 
 let sas: string;
 try {
@@ -9,4 +10,5 @@ try {
     sas = null;
 }
 
-ReactDOM.render(<MainRouter sasUrl={sas} useMatch={true}/>, document.getElementById("root"));
+//ReactDOM.render(<MainRouter sasUrl={sas} useMatch={true}/>, document.getElementById("root"));
+ReactDOM.render(<StateRouter sasUrl={sas}/>, document.getElementById("root"));

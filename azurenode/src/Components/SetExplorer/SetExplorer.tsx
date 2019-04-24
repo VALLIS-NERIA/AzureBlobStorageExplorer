@@ -12,10 +12,10 @@ import {
 
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
+import {PathLink} from "../Misc/PathLink";
 import * as Utils from "../Misc/Utils";
 
 export interface ISetExplorerProps {
-    pathGen: (d: Directory) => string;
     container: Container; // null: storage view
     set: ISet; // ^
     itemList: ItemList; // null: storage view / item data fetching
@@ -38,21 +38,35 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
         this.state = { tabIndex: 0, init: true };
     }
 
+    static getDerivedStateFromProps(newProp: ISetExplorerProps, prevState: ISetExplorerState): ISetExplorerState {
+        if (!newProp.itemList) {
+            return prevState;
+        }
+
+        const imgBlobs = newProp.itemList.blobs
+            .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")))
+            .map(b => new ImageBlob(b));
+        const mostImage: boolean = imgBlobs.length >
+            (newProp.itemList.blobs.length + newProp.itemList.directories.length) * 0.7;
+        const idx = mostImage ? 1 : 0;
+        if (prevState.init && idx !== prevState.tabIndex) {
+            prevState.tabIndex = idx;
+            return prevState;
+        }
+
+        return prevState;
+    }
+
     render(): JSX.Element {
         if (!this.props.itemList) {
             return <Loading/>;
         }
+
         const imgBlobs = this.props.itemList.blobs
             .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")))
             .map(b => new ImageBlob(b));
-        //.filter((b) => b.properties && b.properties.contentType.includes("image"));
         const hasImage: boolean = imgBlobs.length > 0;
-        const mostImage: boolean = imgBlobs.length >
-            (this.props.itemList.blobs.length + this.props.itemList.directories.length) * 0.7;
-        const idx = mostImage ? 1 : 0;
-        if (this.state.init && idx !== this.state.tabIndex) {
-            this.setState({ tabIndex: idx });
-        }
+
         const elem = (
             <Tabs
                 selectedIndex={this.state.tabIndex}
@@ -67,7 +81,6 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                     <TabPanel>
                         <ListView
                             className={`${styles.tabContent}`}
-                            dirUrl={this.props.pathGen}
                             itemList={this.props.itemList}
                             schemas={schema}/>
                     </TabPanel>
@@ -79,7 +92,7 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                     </TabPanel>
                 </div>
             </Tabs>);
-        const loc = this.props.set.getFullLocation();
+        //const loc = this.props.set.getFullLocation();
         return <div>
             {elem}
             </div>;

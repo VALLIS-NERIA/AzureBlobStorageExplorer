@@ -1,10 +1,10 @@
 ﻿import * as React from "react";
-import { Link } from "react-router-dom";
 import { Blob, Directory, ItemList } from "../../azureExplorer";
 import * as AgGrid from "ag-grid-react";
 import { ColDef, ICellRendererParams, ICellRendererComp } from "ag-grid-community";
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-balham.css";
+import { PathLink } from "../Misc/PathLink";
 
 export type DisplaySchema = IDisplaySchema | string;
 
@@ -16,7 +16,6 @@ interface IDisplaySchema {
 interface IListViewProp {
     className?: string;
     itemList: ItemList;
-    dirUrl(dir: Directory): string;
     schemas: DisplaySchema[];
 }
 
@@ -29,11 +28,12 @@ interface IListViewState {
 class NameCellRenderer extends React.Component<ICellRendererParams> {
     render() {
         if (this.props.data.type === "Dir") {
-            return <Link to={this.props.data.link}> {this.props.value} </Link>;
+            const dir = this.props.data.dir as Directory;
+            return <PathLink path={{containerName: dir.container.name, dirPath: dir.path}}>{this.props.value}</PathLink>;
         }
         else if (this.props.data.type === "Blob") {
             const data = this.props.data;
-            return <a href={data.link} target="_blank" type={data.contentType}>
+            return <a href={data.blob.url} target="_blank" type={data.contentType}>
                        {this.props.value}
                    </a>;
         }
@@ -61,7 +61,7 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
         }
 
         for (const dir of newProp.itemList.directories) {
-            data.push({ type: "Dir", name: dir.name, link: newProp.dirUrl(dir) });
+            data.push({ type: "Dir", name: dir.name, dir: dir });
         }
 
         for (const blob of newProp.itemList.blobs) {
@@ -69,7 +69,7 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
             entry.type = "Blob";
             // TODO: show blob name instead of path
             entry.name = blob.name;
-            entry.link = blob.url;
+            entry.blob = blob;
             if (blob.properties) {
                 for (const prop of newProp.schemas) {
                     if (typeof prop === "string") {
@@ -102,7 +102,7 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
                     enableColResize={true}
                     onFirstDataRendered={(params) => {
                         params.columnApi.autoSizeColumns(defs);
-                        
+
                         params.columnApi.sizeColumnsToFit(params.api.getPreferredWidth());
                     }}
                     columnDefs={this.state.columnDefs}

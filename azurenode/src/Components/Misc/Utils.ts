@@ -7,18 +7,18 @@ import {
 
 export const slash: string = "%2F";
 
-function getDirFullPathSearch(path: string, container?: string, dir?: string) {
+export function getDirFullPathSearch(path: string, container?: string, dir?: string) {
     if (!container) return path;
     if (!dir) return `${path}?container=${container}`;
 
-    const dirPath = dir.replace(/\//g, slash);
-    return `${path}?container=${container}&path=${dirPath}`;
+    const dirEncoded = encodeURI(dir);
+    return `${path}?container=${container}&path=${dirEncoded}`;
 }
 
-function getDirFullPathNotSearch(path: string, container?: string, dir?: string) {
-    if (!container) return "/";
-    if (!dir) return `/${container}`;
-    return `/${container}/${dir}`;
+export function getDirFullPathNotSearch(path: string, container?: string, dir?: string) {
+    if (!container) return path;
+    if (!dir) return `${path}/${container}`;
+    return `${path}/${container}/${dir}`;
 }
 
 export function getDirFullPathGenerator(isSearch: boolean):

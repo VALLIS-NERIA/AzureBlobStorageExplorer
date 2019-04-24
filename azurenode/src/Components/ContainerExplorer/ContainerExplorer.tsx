@@ -7,22 +7,24 @@
     IItem,
     ISet,
     ItemType,
-    delimiter
+    delimiter,
+    AzurePath
 } from "../../azureExplorer";
 
 import * as React from "react";
-import { Link, RouteComponentProps } from "react-router-dom";
 import { Loading } from "../Misc/Loading";
 import { Header } from "../Misc/Header";
-import * as Utils from "../Misc/Utils";
-import SetView from "../SetExplorer/SetExplorer";
+import SetExplorer from "../SetExplorer/SetExplorer";
+import {PathLink, PathLinkRenderMode } from "../Misc/PathLink";
 
 
-interface IExplorerProp extends RouteComponentProps {
-    isSearch: boolean;
-    path: { containerName: string, dirPath?: string };
+interface IExplorerProp {
+    path: AzurePath;
     storage: Storage;
     containers: Container[];
+    pathGenerator: (path: AzurePath) => string;
+    clickCallback?: (path: AzurePath) => void;
+    renderMode: PathLinkRenderMode;
 }
 
 export interface IExplorerState {
@@ -45,6 +47,9 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
             set: null,
             itemList: null
         };
+        PathLink.pathLinkGenerator = this.props.pathGenerator;
+        PathLink.clickCallback = this.props.clickCallback;
+        PathLink.renderMode = this.props.renderMode;
     }
 
     componentDidMount(): void {
@@ -63,12 +68,15 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
 
     private selectContainerView(): JSX.Element {
         const list: JSX.Element[] = [];
-        for (const cont of this.props.containers) {
-            const path: string = this.props.isSearch
-                ? `${this.props.location.pathname}?container=${cont.name}`
-                : `/${cont.name}`;
-            list.push(<Link style={{ display: "block" }} to={path}> {`Container: ${cont.name}`} </Link>);
-        }
+
+            for (const cont of this.props.containers) {
+                list.push(
+                    <PathLink
+                        style={{ display: "block" }}
+                        path={{containerName: cont.name}}>
+                        {`Container: ${cont.name}`}
+                    </PathLink>);
+            }
         return <div className={styles.detail}>
                    {list}
                </div>;
@@ -83,20 +91,12 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                      </Link>*/
                     }
                     <Header
-                        basePath={this.props.location.pathname}
-                        isSearch={this.props.isSearch}
-                        container={this.props.path.containerName}
-                        dir={this.props.path.dirPath}/>
+                        path={this.props.path}/>
                 </div>
-                <SetView
+                <SetExplorer
                     container={this.state.container}
                     set={this.state.set}
-                    itemList={this.state.itemList}
-                    pathGen={(dir) =>
-                        Utils.getDirFullPathGenerator(this.props.isSearch)(
-                            this.props.location.pathname,
-                            this.state.container.name,
-                            dir.path)}/>
+                    itemList={this.state.itemList}/>
             </div>);
 
     }

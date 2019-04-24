@@ -18,6 +18,16 @@ export enum ItemType {
     Directory = "Directory"
 }
 
+export interface AzurePath {
+    containerName: string;
+    dirPath?: string;
+}
+
+export interface AzureLocation {
+    container: Container;
+    dir?: Directory;
+}
+
 export interface IItem {
     type: ItemType;
     path: string;
@@ -252,7 +262,7 @@ export class Directory implements IItem, ISet {
     /* This contains a delimiter at the end. */
     path: string;
 
-    private container: Container;
+    container: Container;
 
     constructor(container: Container, name: string, parent?: Directory) {
         this.container = container;

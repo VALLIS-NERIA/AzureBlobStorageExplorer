@@ -63,6 +63,7 @@
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
     <TypeScriptCompile Include="src\Components\GalleryView\GalleryView.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Header.tsx" />
+    <TypeScriptCompile Include="src\Components\Misc\PathLink.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Utils.ts" />
     <TypeScriptCompile Include="src\Components\GalleryView\ButtonSlideImageView.tsx" />
     <TypeScriptCompile Include="src\Components\SetExplorer\SetExplorer.tsx" />
@@ -78,6 +79,7 @@
     <TypeScriptCompile Include="src\Components\MainRouter\MainRouter.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\Components\StateRouter\StateRouter.tsx" />
     <TypeScriptCompile Include="src\wp_gallery.tsx" />
     <TypeScriptCompile Include="src\index.tsx" />
     <TypeScriptCompile Include="src\sas.ts">
@@ -93,6 +95,7 @@
     <Folder Include="src\Components\GalleryView\" />
     <Folder Include="src\Components\MainRouter\" />
     <Folder Include="src\Components\Misc\" />
+    <Folder Include="src\Components\StateRouter\" />
     <Folder Include="src\Components\SetExplorer\" />
     <Folder Include="src\Lib\" />
     <Folder Include="src\Lib\justifiedGallery\" />
