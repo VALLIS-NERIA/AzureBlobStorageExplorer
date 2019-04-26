@@ -39,11 +39,16 @@ export interface IItem {
 }
 
 export interface ISet {
+    name: string;
+    azPath: AzurePath;
+
+    getParent(): ISet;
+
     getItemsList(prefix?: string): Promise<ItemList>;
 
     enumerateItems(prefix?: string): AsyncIterableIterator<IItem>;
 
-    getFullLocation(): {sas:string,container:string,path:string};
+    getFullLocation(): { sas: string, container: string, path: string };
 }
 
 export class ItemList implements Iterable<IItem> {
@@ -54,6 +59,10 @@ export class ItemList implements Iterable<IItem> {
     directories: Array<Directory>;
     blobs: Array<Blob>;
     metadataLoaded: boolean;
+
+    get length(): number {
+        return this.blobs.length + this.directories.length;
+    }
 
     private blobTasks: Array<Promise<void>> = [];
 
@@ -150,8 +159,8 @@ export class Storage {
 
 export class Container implements ISet {
     name: string;
-
-    storage:Storage;
+    azPath: AzurePath;
+    storage: Storage;
     private containerURL: ContainerURL;
     private containerItem: Models.ContainerItem;
 
@@ -160,6 +169,7 @@ export class Container implements ISet {
         this.containerURL = ContainerURL.fromServiceURL(storage.serviceURL, containerItem.name);
         this.containerItem = containerItem;
         this.name = containerItem.name;
+        this.azPath = { containerName: this.name };
     }
 
     public async findPrefixDir(prefix: string): Promise<Directory> {
@@ -218,6 +228,8 @@ export class Container implements ISet {
             path: ""
         };
     }
+
+    public getParent() { return null; }   
 }
 
 export class Blob implements IItem {
@@ -261,12 +273,13 @@ export class Directory implements IItem, ISet {
 
     /* This contains a delimiter at the end. */
     path: string;
+    azPath: AzurePath;
 
     container: Container;
 
     constructor(container: Container, name: string, parent?: Directory) {
         this.container = container;
-        
+
         const a = name.split(delimiter);
         this.name = a[a.length - 2];
         if (parent) {
@@ -275,6 +288,8 @@ export class Directory implements IItem, ISet {
         else {
             this.path = name;
         }
+
+        this.azPath = { containerName: container.name, dirPath: this.path };
     }
 
     public getItemsList(prefix?: string): Promise<ItemList> {
@@ -291,5 +306,15 @@ export class Directory implements IItem, ISet {
             container: this.container.name,
             path: this.path
         };
+    }
+
+    public getParent(): ISet {
+        const match = this.path.match(new RegExp(`(.+)${delimiter}[^${delimiter}]+${delimiter}$`));
+        if (match) {
+            return new Directory(this.container, match[1] + delimiter);
+        }
+        else {
+            return this.container;
+        }
     }
 }

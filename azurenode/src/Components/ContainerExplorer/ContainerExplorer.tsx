@@ -15,23 +15,19 @@ import * as React from "react";
 import { Loading } from "../Misc/Loading";
 import { Header } from "../Misc/Header";
 import SetExplorer from "../SetExplorer/SetExplorer";
-import {PathLink, PathLinkRenderMode } from "../Misc/PathLink";
+import { PathLink } from "../Misc/PathLink";
 
 
 interface IExplorerProp {
     path: AzurePath;
     storage: Storage;
     containers: Container[];
-    pathGenerator: (path: AzurePath) => string;
-    clickCallback?: (path: AzurePath) => void;
-    renderMode: PathLinkRenderMode;
 }
 
 export interface IExplorerState {
     myProp: IExplorerProp;
     container: Container; // null: storage view
     set: ISet; // ^
-    itemList: ItemList; // null: storage view / item data fetching
 }
 
 
@@ -44,16 +40,12 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         this.state = {
             myProp: props,
             container: ContainerExplorer.findContainer(props),
-            set: null,
-            itemList: null
+            set: null
         };
-        PathLink.pathLinkGenerator = this.props.pathGenerator;
-        PathLink.clickCallback = this.props.clickCallback;
-        PathLink.renderMode = this.props.renderMode;
     }
 
     componentDidMount(): void {
-        this.getSetAndItems(this.props);
+        this.getSet(this.props);
     }
 
     render() {
@@ -69,20 +61,23 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
     private selectContainerView(): JSX.Element {
         const list: JSX.Element[] = [];
 
-            for (const cont of this.props.containers) {
-                list.push(
-                    <PathLink
-                        style={{ display: "block" }}
-                        path={{containerName: cont.name}}>
-                        {`Container: ${cont.name}`}
-                    </PathLink>);
-            }
+        for (const cont of this.props.containers) {
+            list.push(
+                <PathLink
+                    style={{ display: "block" }}
+                    set={cont}>
+                    {`Container: ${cont.name}`}
+                </PathLink>);
+        }
         return <div className={styles.detail}>
                    {list}
                </div>;
     }
 
     private setView(): JSX.Element {
+        if (!this.state.set) {
+            return <Loading/>;
+        }
         return (
             <div className={styles.container}>
                 <div className={styles.backToTop}>
@@ -90,13 +85,9 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                          Back to top
                      </Link>*/
                     }
-                    <Header
-                        path={this.props.path}/>
+                    <Header set={this.state.set}/>
                 </div>
-                <SetExplorer
-                    container={this.state.container}
-                    set={this.state.set}
-                    itemList={this.state.itemList}/>
+                <SetExplorer set={this.state.set}/>
             </div>);
 
     }
@@ -119,14 +110,13 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return {
             myProp: newProp,
             container: container,
-            set: null,
-            itemList: null
+            set: null
         };
     }
 
     componentDidUpdate(prevProps: IExplorerProp, prevState: IExplorerState, snapshot?): void {
         if (this.state.container && !this.state.set) {
-            this.getSetAndItems(this.props);
+            this.getSet(this.props);
         }
     }
 
@@ -139,7 +129,7 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
         return null;
     }
 
-    private async getSetAndItems(props: IExplorerProp): Promise<void> {
+    private async getSet(props: IExplorerProp): Promise<void> {
         const container = this.state.container;
         const dirPath = this.props.path.dirPath;
 
@@ -150,14 +140,6 @@ export class ContainerExplorer extends React.Component<IExplorerProp, IExplorerS
                 set = dir;
             }
         }
-        this.setState({ set: set, }, () => { this.fetchItems(); });
-    }
-
-    private async fetchItems(): Promise<void> {
-        if (this.state.set) {
-            const res = await this.state.set.getItemsList();
-            this.setState({ itemList: res });
-            res.waitBlobMetadata().then(() => this.setState({ itemList: res }));
-        }
+        this.setState({ set: set, }, () => { this.props.path.dirPath = null });
     }
 }

@@ -1,21 +1,16 @@
 ﻿import {
     Storage,
     Container,
-    Blob,
-    Directory,
-    ItemList,
-    IItem,
-    ItemType,
     AzurePath
 } from "../../azureExplorer";
 
 import * as React from "react";
-import { BrowserRouter, Router, Route, Link, RouteComponentProps, Switch } from "react-router-dom";
-import { createBrowserHistory, createHashHistory, createMemoryHistory } from "history";
+import { Router, Route, RouteComponentProps, Switch } from "react-router-dom";
+import { createBrowserHistory } from "history";
 import { ContainerExplorer } from "../ContainerExplorer/ContainerExplorer";
 import { Loading } from "../Misc/Loading";
 import * as Utils from "../Misc/Utils";
-import * as PathLink from "../Misc/PathLink";
+import * as Environment from "../../Environment";
 
 interface IRouterProp {
     sasUrl?: string;
@@ -83,7 +78,7 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
 
         if (prefix.length === 0) return "";
 
-        return "/" + prefix;
+        return `/${prefix}`;
     }
 
     render(): JSX.Element {
@@ -93,11 +88,11 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
 
         const matchUrlGenerator = (routeProps: RouteComponentProps<AzurePath>, path: AzurePath) => {
             return Utils.getDirFullPathNotSearch(routeProps.location.pathname, path.containerName, path.dirPath);
-        }
+        };
 
         const searchUrlGenerator = (routeProps: RouteComponentProps, path: AzurePath) => {
             return Utils.getDirFullPathSearch(routeProps.location.pathname, path.containerName, path.dirPath);
-        }
+        };
 
         return (
             <Router history={history}>
@@ -106,34 +101,35 @@ export class MainRouter extends React.Component<IRouterProp, IRouterState> {
                         exact={true}
                         path={`${this.state.prefix}/`}
                         component={
-                            (props: RouteComponentProps) =>
-                                <ContainerExplorer
-                                    storage={this.state.storage}
-                                    containers={this.state.containers}
-                                    path={Utils.getPathFromSearch(props.location.search)}
-                                    pathGenerator={(p) => searchUrlGenerator(props, p)}
-                                    renderMode={PathLink.PathLinkRenderMode.RouterLink}/>}/>
+                            (props: RouteComponentProps) => {
+                                Environment.EnvironmentManager.setRouterPathLink((p) => searchUrlGenerator(props, p));
+                                return <ContainerExplorer
+                                           storage={this.state.storage}
+                                           containers={this.state.containers}
+                                           path={Utils.getPathFromSearch(props.location.search)}/>
+                            }}/>
                     <Route
                         path="*/*.html"
                         component={
-                            (props: RouteComponentProps) =>
-                                <ContainerExplorer
-                                    storage={this.state.storage}
-                                    containers={this.state.containers}
-                                    path={Utils.getPathFromSearch(props.location.search)}
-                                    pathGenerator={(p) => searchUrlGenerator(props, p)}
-                                    renderMode={PathLink.PathLinkRenderMode.RouterLink}/>}/>
+                            (props: RouteComponentProps) => {
+                                Environment.EnvironmentManager.setRouterPathLink((p) => searchUrlGenerator(props, p));
+                                return <ContainerExplorer
+                                           storage={this.state.storage}
+                                           containers={this.state.containers}
+                                           path={Utils.getPathFromSearch(props.location.search)}/>
+                            }}/>
                     {this.props.useMatch
                         ? <Route
                               path={`${this.state.prefix}/:containerName/:dirPath*`}
                               component={
-                            (props: RouteComponentProps<AzurePath>) =>
-                                <ContainerExplorer
-                                    storage={this.state.storage}
-                                    containers={this.state.containers}
-                                    path={props.match.params}
-                                    pathGenerator={(p) => matchUrlGenerator(props, p)}
-                                    renderMode={PathLink.PathLinkRenderMode.RouterLink}/>}/>
+                                  (props: RouteComponentProps<AzurePath>) => {
+                                      Environment.EnvironmentManager.setRouterPathLink(
+                                          (p) => matchUrlGenerator(props, p));
+                                      return <ContainerExplorer
+                                                 storage={this.state.storage}
+                                                 containers={this.state.containers}
+                                                 path={props.match.params}/>
+                                  }}/>
                         : null}
                 </Switch>
             </Router>

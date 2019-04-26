@@ -13,12 +13,13 @@ import { PathLink } from "./PathLink";
 const styles: any = require("./SmallComponents.module.less");
 
 interface IHeaderProps {
-    path: AzurePath;
+    showTop?: boolean;
+    set: ISet;
 }
 
 export class Header extends React.Component<IHeaderProps, {}> {
     render(): React.ReactNode {
-        if (!this.props.path) {
+        if (!this.props.set) {
             return null;
         }
         return this.getElement(this.extractRoutes());
@@ -40,34 +41,42 @@ export class Header extends React.Component<IHeaderProps, {}> {
             yield { name: dir, route: generator({ containerName: this.props.path.containerName, dirPath: subdir }) };
         }
     }*/
-    private *extractRoutes(): IterableIterator<{ name: string, path: AzurePath }> {
-        yield { name: "Top", path: { containerName: null, dirPath: null } };
+    //private *extractRoutes(): IterableIterator<{ name: string, path: AzurePath }> {
+    //    yield { name: "Top", path: { containerName: null, dirPath: null } };
 
-        const dirPath = decodeURI(this.props.path.dirPath);
-        yield {
-            name: this.props.path.containerName,
-            path: { containerName: this.props.path.containerName }
-        };
+    //    const dirPath = decodeURI(this.props.set.azPath.dirPath);
+    //    yield {
+    //        name: this.props.set.azPath.containerName,
+    //        path: { containerName: this.props.set.azPath.containerName }
+    //    };
 
-        const dirs = dirPath.split("/");
-        dirs.pop();
-        let subdir = "";
+    //    const dirs = dirPath.split("/");
+    //    dirs.pop();
+    //    let subdir = "";
 
-        for (const dir of dirs) {
-            subdir += dir + "/";
-            yield { name: dir, path: { containerName: this.props.path.containerName, dirPath: subdir } };
+    //    for (const dir of dirs) {
+    //        subdir += dir + "/";
+    //        yield { name: dir, path: { containerName: this.props.set.azPath.containerName, dirPath: subdir } };
+    //    }
+    //}
+
+    private *extractRoutes(): IterableIterator<{ name: string, set: ISet }> {
+        let set = this.props.set;
+        while (set) {
+            yield { name: set.name, set: set };
+            set = set.getParent();
         }
     }
 
-    private getElement(items: Iterable<{ name: string, path: AzurePath }>): React.ReactNode {
+    private getElement(items: Iterable<{ name: string, set: ISet }>): React.ReactNode {
         const list: JSX.Element[] = [];
         let i = 0;
         for (const item of items) {
-            list.push(<PathLink path={item.path} key={i + "name"}>{item.name}</PathLink>);
-            //list.push(<Link to={item.route} key={i + "name"}>{item.name}</Link>);
             list.push(<a key={i + "d"}>{">"}</a>);
+            list.push(<PathLink set={item.set} key={i + "name"}>{item.name}</PathLink>);
+            //list.push(<Link to={item.route} key={i + "name"}>{item.name}</Link>);
             i++;
         }
-        return <div>{list}</div>;
+        return <div>{list.reverse()}</div>;
     }
 }

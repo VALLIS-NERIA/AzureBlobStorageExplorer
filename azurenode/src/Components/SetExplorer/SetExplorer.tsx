@@ -6,22 +6,24 @@ import { MasonryImageView } from "../GalleryView/MasonryImageView";
 import {
     Container,
     Directory,
+    Blob,
     ItemList,
     ISet
 } from "../../azureExplorer";
-
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
-import {PathLink} from "../Misc/PathLink";
+import { PathLink } from "../Misc/PathLink";
 import * as Utils from "../Misc/Utils";
+import { apiUrl, apiCode } from "../../sas";
 
 export interface ISetExplorerProps {
-    container: Container; // null: storage view
-    set: ISet; // ^
-    itemList: ItemList; // null: storage view / item data fetching
+    set: ISet;
 }
 
 interface ISetExplorerState {
+    currentSet: ISet;
+    itemList: ItemList;
+    itemMetaReady: boolean;
     init: boolean;
     tabIndex: number;
 }
@@ -35,34 +37,33 @@ const styles: any = require("./SetExplorer.module.less");
 export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorerState> {
     constructor(props: ISetExplorerProps) {
         super(props);
-        this.state = { tabIndex: 0, init: true };
+        this.state = { currentSet: props.set, itemList: null, tabIndex: 0, init: true, itemMetaReady: false };
+    }
+
+    private isMostImage(itemList: ItemList): boolean {
+        if (!itemList) {
+            return false;
+        }
+        const imgCount = itemList.blobs.filter((b) => Utils.isImageExt(b.name)).length;
+        const mostImage = imgCount > itemList.length * 0.5;
+        return mostImage;
     }
 
     static getDerivedStateFromProps(newProp: ISetExplorerProps, prevState: ISetExplorerState): ISetExplorerState {
-        if (!newProp.itemList) {
+        if (newProp.set !== prevState.currentSet) {
+            return { currentSet: newProp.set, itemList: null, tabIndex: 0, init: true, itemMetaReady: false };
+        }
+        else {
             return prevState;
         }
-
-        const imgBlobs = newProp.itemList.blobs
-            .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")))
-            .map(b => new ImageBlob(b));
-        const mostImage: boolean = imgBlobs.length >
-            (newProp.itemList.blobs.length + newProp.itemList.directories.length) * 0.7;
-        const idx = mostImage ? 1 : 0;
-        if (prevState.init && idx !== prevState.tabIndex) {
-            prevState.tabIndex = idx;
-            return prevState;
-        }
-
-        return prevState;
     }
 
     render(): JSX.Element {
-        if (!this.props.itemList) {
+        if (!this.state.itemList || !this.props.set) {
             return <Loading/>;
         }
 
-        const imgBlobs = this.props.itemList.blobs
+        const imgBlobs = this.state.itemList.blobs
             .filter((b) => Utils.isImageExt(b.name) || (b.properties && b.properties.contentType.includes("image")))
             .map(b => new ImageBlob(b));
         const hasImage: boolean = imgBlobs.length > 0;
@@ -80,23 +81,42 @@ export class SetExplorer extends React.Component<ISetExplorerProps, ISetExplorer
                 <div className={styles.tabContent}>
                     <TabPanel>
                         <ListView
+                            parent={this.state.currentSet.getParent()}
                             className={`${styles.tabContent}`}
-                            itemList={this.props.itemList}
+                            itemList={this.state.itemList}
+                            itemMetaReady={this.state.itemMetaReady}
                             schemas={schema}/>
                     </TabPanel>
                     <TabPanel>
                         <MasonryImageView
-                            //loadFinished={this.props.itemList.metadataLoaded}
                             className={styles.tabContent}
                             imgs={imgBlobs}/>
                     </TabPanel>
                 </div>
             </Tabs>);
-        //const loc = this.props.set.getFullLocation();
         return <div>
-            {elem}
-            </div>;
+                   {elem}
+               </div>;
     }
+
+    private fetchItems() {
+        if (this.props.set&&!this.state.itemList) {
+            this.props.set.getItemsList()
+                .then((list) => {
+                    list.waitBlobMetadata().then(() => this.setState({ itemMetaReady: true }));
+                    this.setState({
+                    itemList: list,
+                    init: false,
+                    tabIndex: this.isMostImage(list) ? 1 : 0
+                })});
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        this.fetchItems();
+    }
+
+    componentDidMount() { this.fetchItems(); }
 }
 
 export default SetExplorer;

@@ -6,7 +6,8 @@ import {
     ItemList,
     IItem,
     ItemType,
-    AzurePath
+    AzurePath,
+    ISet
 } from "../../azureExplorer";
 
 import * as React from "react";
@@ -16,7 +17,8 @@ import { ContainerExplorer } from "../ContainerExplorer/ContainerExplorer";
 import { Loading } from "../Misc/Loading";
 import * as Utils from "../Misc/Utils";
 import * as PathLink from "../Misc/PathLink";
-import {SetExplorer} from "../SetExplorer/SetExplorer";
+import { SetExplorer } from "../SetExplorer/SetExplorer";
+import { EnvironmentManager } from "../../Environment";
 
 export interface IStateRouterProps {
     sasUrl: string;
@@ -24,6 +26,7 @@ export interface IStateRouterProps {
 }
 
 export interface IStateRouterState {
+    set: ISet;
     path: AzurePath;
     storage: Storage;
     containers: Container[];
@@ -33,21 +36,17 @@ export interface IStateRouterState {
 export class StateRouter extends React.Component<IStateRouterProps, IStateRouterState> {
     constructor(props: IStateRouterProps) {
         super(props);
+        let storage: Storage = null;
         try {
-            this.state = {
-                path: null,
-                storage: new Storage(props.sasUrl),
-                containers: null,
-                currentContainer: null
-            };
-        } catch (e) {
-            this.state = {
-                path: null,
-                storage: null,
-                containers: null,
-                currentContainer: null
-            };
-        }
+            storage = new Storage(props.sasUrl);
+        } catch (e) {}
+        this.state = {
+            set: null,
+            path: null,
+            storage: storage,
+            containers: null,
+            currentContainer: null
+        };
 
         this.findContainer(props.containerName);
     }
@@ -67,7 +66,7 @@ export class StateRouter extends React.Component<IStateRouterProps, IStateRouter
                 }
             }
         }
-        this.setState({ containers: list, currentContainer: container, path: { containerName: name } });
+        this.setState({ containers: list, currentContainer: container, set: container, path: { containerName: name } });
     }
 
     render() {
@@ -83,12 +82,15 @@ export class StateRouter extends React.Component<IStateRouterProps, IStateRouter
             return <ContainerExplorer
                        storage={this.state.storage}
                        containers={this.state.containers}
-                       path={this.state.path}
-                       pathGenerator={null}
-                       clickCallback={(path) => { this.setState({ path: path }); }}
-                       renderMode={PathLink.PathLinkRenderMode.ClickCallback}/>;
+                       path={this.state.path}/>;
         }
+        
+        return <SetExplorer set={this.state.set} />;
+    }
 
-        //TODO: return SetExplorer directly if container is set.
+    componentDidMount(): void {
+        const setter = (s: ISet) => this.setState({ path: s.azPath, set: s });
+        //const setter = (p) => console.log(this);
+        EnvironmentManager.setStatePathLink((p) => setter(p));
     }
 }

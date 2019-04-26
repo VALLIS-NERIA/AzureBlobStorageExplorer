@@ -11,8 +11,8 @@ import {
     Blob,
     ISet
 } from "../../azureExplorer";
+import { EnvironmentManager } from "../../Environment";
 import * as Utils from "../Misc/Utils";
-import { apiUrl, apiCode } from "../../sas";
 
 export interface IGalleryViewProps {
     sasUrl: string;
@@ -65,11 +65,11 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             if (props.thumbSize.startsWith("thumb-")) {
                 props.thumbSize = props.thumbSize.replace("thumb-", "");
             }
-            ImageBlob.factory =
-                (blob: Blob) => `${apiUrl}/thumb?code=${apiCode}&name=${blob.path}&size=${props.thumbSize}`;
+            EnvironmentManager.setImageThumbnailFunctionSize(props.thumbSize);
         }
         else {
-            ImageBlob.factory = (blob: Blob) => blob.url;
+            EnvironmentManager.setNoImageThumbnailFunction();
+
         }
 
         const paths = props.dir.replace(/"|'/g, "").split(" ");
@@ -93,14 +93,15 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
         this.setState(
             { storage: storage, container: container, directories: dirs },
             () => {
-                Promise.all(promises).then(
-                    lists => {
-                        const items = new ItemList();
-                        for (const list of lists) {
-                            items.addMany(list);
-                        }
-                        this.setState({ items: items });
-                    });
+                Promise.all(promises)
+                    .then(
+                        lists => {
+                            const items = new ItemList();
+                            for (const list of lists) {
+                                items.addMany(list);
+                            }
+                            this.setState({ items: items });
+                        });
             });
     }
 
@@ -115,7 +116,8 @@ export default class GalleryView extends React.Component<IGalleryViewProps, IGal
             return <Loading message="Loading image list"/>;
         }
         const imgBlobs = this.state.items.blobs
-            .filter((b) => Utils.isImageExt(b.name)).map(b => new ImageBlob(b));
+            .filter((b) => Utils.isImageExt(b.name))
+            .map(b => new ImageBlob(b));
 
         if (imgBlobs.length === 0) {
             return <Loading message="No image to show."/>;

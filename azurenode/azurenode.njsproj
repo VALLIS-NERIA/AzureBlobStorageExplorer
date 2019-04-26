@@ -60,6 +60,7 @@
     <Content Include="package.json" />
     <TypeScriptCompile Include="src\azureExplorer.ts" />
     <TypeScriptCompile Include="src\azuretest.ts" />
+    <TypeScriptCompile Include="src\Environment.ts" />
     <TypeScriptCompile Include="src\Components\ContainerExplorer\ContainerExplorer.tsx" />
     <TypeScriptCompile Include="src\Components\GalleryView\GalleryView.tsx" />
     <TypeScriptCompile Include="src\Components\Misc\Header.tsx" />
