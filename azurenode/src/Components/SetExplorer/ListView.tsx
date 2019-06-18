@@ -6,6 +6,8 @@ import { ColDef, ICellRendererParams, ICellRendererComp } from "ag-grid-communit
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-balham.css";
 import { PathLink } from "../Misc/PathLink";
+import * as Utils from "../Misc/Utils";
+import { Environment } from "../../Environment";
 
 export type DisplaySchema = IDisplaySchema | string;
 
@@ -46,8 +48,28 @@ class NameCellRenderer extends React.Component<ICellRendererParams> {
                        {this.props.value}
                    </a>;
         }
+    }
+
+    componentDidMount() {
         this.props.api.sizeColumnsToFit();
         this.props.columnApi.autoSizeAllColumns();
+    }
+
+    componentDidUpdate() {
+        this.props.api.sizeColumnsToFit();
+        this.props.columnApi.autoSizeAllColumns();
+    }
+}
+
+class GetThumbCell extends React.Component<ICellRendererParams> {
+    render() {
+        if (!this.props.value) {
+            return null;
+        }
+        return <a target="_blank"
+                  href={Environment.getVideoThumbnail(this.props.value as Blob)}>
+                   thumbnail
+               </a>;
     }
 
     componentDidMount() {
@@ -77,6 +99,7 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
 
         columnDefs.push({ headerName: "type", field: "type" });
         columnDefs.push({ headerName: "name", field: "name", cellRendererFramework: NameCellRenderer });
+        columnDefs.push({ headerName: "option", field: "option", cellRendererFramework: GetThumbCell });
 
         for (const schema of newProp.schemas) {
             const name = typeof schema === "string" ? schema as string : (schema as IDisplaySchema).name;
@@ -84,7 +107,7 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
         }
 
         if (newProp.parent) {
-            data.push({ type: "Dir", name: "..", dir: newProp.parent })
+            data.push({ type: "Dir", name: "..", dir: newProp.parent });
         }
 
         for (const dir of newProp.itemList.directories) {
@@ -94,9 +117,12 @@ export class ListView extends React.Component<IListViewProp, IListViewState> {
         for (const blob of newProp.itemList.blobs) {
             const entry: { [key: string]: Object } = {};
             entry.type = "Blob";
-            // TODO: show blob name instead of path
             entry.name = blob.name;
             entry.blob = blob;
+            if (Utils.isVideoExt(blob.name)) {
+                entry.option = blob;
+            }
+
             if (blob.properties) {
                 for (const prop of newProp.schemas) {
                     if (typeof prop === "string") {

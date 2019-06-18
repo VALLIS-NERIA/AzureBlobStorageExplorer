@@ -46,3 +46,4 @@ export class EnvironmentManager {
 }
 
 EnvironmentManager.setImageThumbnailFunctionSize("md");
+Environment.getVideoThumbnail = Environment.getImageThumbnail;

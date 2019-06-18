@@ -109,3 +109,11 @@ export function getColWidthCss(column: string): string {
 export function isImageExt(filename: string): boolean {
     return filename.match(/(png|jpeg|jpg|gif)$/) ? true : false;
 }
+
+export function isVideoExt(filename: string): boolean {
+    return filename.match(/(avi|mov|mp4|m4v|mpg|flv)$/) ? true : false;
+}
+
+export function isImageOrVideo(filename: string): boolean {
+    return isImageExt(filename) || isVideoExt(filename);
+}
